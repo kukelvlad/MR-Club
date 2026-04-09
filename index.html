@@ -160,7 +160,7 @@ html,body{font-family:'DM Sans',sans-serif;background:#1a120a;color:var(--charco
 .menu-card-img img:hover{transform:scale(1.05)}
 .menu-card-img .img-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;z-index:0}
 .menu-card-img img.loaded ~ .img-fallback{display:none}
-.menu-card-featured{position:absolute;top:8px;left:8px;background:var(--gold);color:var(--charcoal);font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.menu-card-featured{position:absolute;top:8px;left:8px;background:var(--red);color:var(--white);font-size:8px;font-weight:700;padding:3px 7px;border-radius:10px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,0.25);max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.3px;text-transform:uppercase}
 .menu-card-body{padding:10px}
 .menu-card-cat{font-size:9px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-dark);margin-bottom:3px}
 .menu-card-name{font-size:13px;font-weight:500;color:var(--charcoal);line-height:1.3;margin-bottom:4px}
@@ -553,8 +553,8 @@ html,body{font-family:'DM Sans',sans-serif;background:#1a120a;color:var(--charco
       <div class="nav-tile" onclick="navTo('menu')">
         <div class="nav-tile-icon">🍽️</div>
         <div>
-          <div class="nav-tile-label">Меню</div>
-          <div class="nav-tile-sub">Новинки и хиты</div>
+          <div class="nav-tile-label">Новинки меню</div>
+          <div class="nav-tile-sub">Свежие новинки</div>
         </div>
       </div>
       <div class="nav-tile" onclick="navTo('progress')">
@@ -771,7 +771,10 @@ html,body{font-family:'DM Sans',sans-serif;background:#1a120a;color:var(--charco
   <!-- ══════════════ SECTION: MENU ══════════════ -->
   <div class="section" id="sec-menu">
     <div class="sec-hdr">
-      <div class="sec-hdr-title">Меню</div>
+      <div>
+        <div class="sec-hdr-title">Новинки меню</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px">Свежие новинки · Только что в меню</div>
+      </div>
       <button class="sec-hdr-link" onclick="navTo('home')">← Назад</button>
     </div>
     <div class="menu-section">
@@ -1076,7 +1079,7 @@ html,body{font-family:'DM Sans',sans-serif;background:#1a120a;color:var(--charco
   </button>
   <button class="nav-item" id="nav-menu" onclick="navTo('menu')">
     <span class="nav-icon">🍽️</span>
-    <span class="nav-label">Меню</span>
+    <span class="nav-label">Новинки</span>
   </button>
   <button class="nav-item" id="nav-rating" onclick="navTo('rating')">
     <span class="nav-icon">🏆</span>
@@ -1299,70 +1302,59 @@ const SURPRISES = [
 ];
 
 // Фото: Unsplash (бесплатная лицензия, открытый доступ)
+// Промо-меню новинок Mama Roma
 const MENU_CATEGORIES = [
   {id:'pizza', label:'🍕 Пицца', emoji:'🍕', items:[
-    {name:'Маргарита', desc:'Томаты, моцарелла, оливковое масло', price:450, popular:false,
-     img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=240&fit=crop&auto=format'},
-    {name:'Пицца Mama Roma', desc:'Курица, салями, бекон, брокколи, черри', price:650, popular:true,
-     img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=240&fit=crop&auto=format'},
-    {name:'Пепперони', desc:'Пеперони, томаты, моцарелла', price:570, popular:true,
-     img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=240&fit=crop&auto=format'},
-    {name:'Четыре сыра', desc:'Моцарелла, пармезан, горгонзола, эмменталь', price:590, popular:false,
-     img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=240&fit=crop&auto=format'},
-    {name:'Цезарь', desc:'Курица, песто, каперсы, красный лук', price:690, popular:false,
-     img:'https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=400&h=240&fit=crop&auto=format'},
-    {name:'Бьянка с лососем', desc:'Лосось, маскарпоне, шпинат, черри', price:790, popular:true,
+    {name:'Бьянка с лососем', badge:'Новинка', desc:'Попробуйте новую пиццу! Лосось, маскарпоне, шпинат, вяленые черри — это love story на тесте.', price:790,
      img:'https://images.unsplash.com/photo-1536964549204-cce9eab227bd?w=400&h=240&fit=crop&auto=format'},
+    {name:'Пицца Mama Roma', badge:'Хит сезона', desc:'Наш фирменный рецепт — курица, салями, бекон, брокколи, черри. Влюбляет с первого кусочка.', price:650,
+     img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=240&fit=crop&auto=format'},
+    {name:'Трюфельная пицца', badge:'🔥 Горячая новинка', desc:'Встречайте новинку! Трюфельное масло, моцарелла буффало, руккола и пармезан. Ограниченно!', price:890,
+     img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=240&fit=crop&auto=format'},
+    {name:'Пепперони Piccante', badge:'Новый вкус', desc:'Новый вкус для вас — острый пепперони, маринованные халапеньо, томаты черри. Огонь!', price:620,
+     img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=240&fit=crop&auto=format'},
   ]},
   {id:'salads', label:'🥗 Салаты', emoji:'🥗', items:[
-    {name:'Цезарь с курицей', desc:'Курица гриль, айсберг, черри, сухарики', price:490, popular:true,
-     img:'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=400&h=240&fit=crop&auto=format'},
-    {name:'Caprese', desc:'Страчателла, помидоры, базилик', price:450, popular:false,
-     img:'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=400&h=240&fit=crop&auto=format'},
-    {name:'Авокадо с креветками', desc:'Авокадо, креветки, черри', price:590, popular:true,
+    {name:'Авокадо Primavera', badge:'Новинка', desc:'Встречайте новинку весны! Авокадо, креветки-гриль, черри, кинза и лимонная заправка. Свежо!', price:620,
      img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=240&fit=crop&auto=format'},
-    {name:'Греческий', desc:'Перец, огурцы, черри, фета, оливки', price:475, popular:false,
-     img:'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=240&fit=crop&auto=format'},
+    {name:'Капрезе с трюфелем', badge:'Новый вкус', desc:'Новый вкус для вас — страчателла, томаты на ветке, базилик и трюфельное масло. Delizia!', price:520,
+     img:'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=400&h=240&fit=crop&auto=format'},
+    {name:'Тепаки с тунцом', badge:'Только у нас', desc:'Только у нас! Свежий тунец, кунжут, авокадо, огурец и соус терияки на листьях айсберга.', price:680,
+     img:'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=400&h=240&fit=crop&auto=format'},
   ]},
   {id:'pasta', label:'🍝 Паста', emoji:'🍝', items:[
-    {name:'Карбонара', desc:'Спагетти, бекон, желток, сливочный соус', price:455, popular:true,
+    {name:'Карбонара Трюфель', badge:'🔥 Новинка', desc:'Попробуйте новую пасту! Классическая карбонара с добавлением трюфельного крема. Bella!', price:550,
      img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=240&fit=crop&auto=format'},
-    {name:'Болонезе', desc:'Спагетти, мясной соус, пармезан', price:455, popular:true,
-     img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&h=240&fit=crop&auto=format'},
-    {name:'Лазанья мясная', desc:'Болоньезе, соус Наполи, пармезан', price:555, popular:false,
-     img:'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400&h=240&fit=crop&auto=format'},
-    {name:'Фрутти ди Маре', desc:'Тальятелли, морепродукты, сливочный соус', price:595, popular:false,
+    {name:'Фрутти ди Маре', badge:'Хит недели', desc:'Морепродукты, тальятелли, белое вино, чеснок и сливки. Итальянское море у вас на тарелке!', price:595,
      img:'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=240&fit=crop&auto=format'},
+    {name:'Лазанья Verdure', badge:'Новый вкус', desc:'Новый вкус для вас — вегетарианская лазанья с овощами на гриле, рикоттой и соусом Наполи.', price:520,
+     img:'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400&h=240&fit=crop&auto=format'},
+    {name:'Паппарделле с уткой', badge:'Только у нас', desc:'Встречайте эксклюзив! Широкая паппарделле, конфи из утки, вишнёвый соус и пармезан.', price:690,
+     img:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=400&h=240&fit=crop&auto=format'},
   ]},
   {id:'grill', label:'🥩 Гриль', emoji:'🥩', items:[
-    {name:'Стейк Стриплойн', desc:'С ассортиментом овощей на гриле', price:995, popular:true,
+    {name:'Стейк Флорентино', badge:'Новинка', desc:'Встречайте новинку! Говядина сухой выдержки, травяное масло, спаржа. Для настоящих гурманов.', price:1290,
      img:'https://images.unsplash.com/photo-1558030006-450675393462?w=400&h=240&fit=crop&auto=format'},
-    {name:'Мясное ассорти', desc:'Говядина, ягнёнок, курица, свинина', price:1450, popular:true,
-     img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=240&fit=crop&auto=format'},
-    {name:'Тигровые креветки', desc:'С черри, лоло-россо, соус для рыбы', price:795, popular:false,
+    {name:'Тигровые креветки', badge:'Хит недели', desc:'Попробуйте! Королевские креветки на гриле, соус биск, руккола, лимон. Море в каждом укусе.', price:795,
      img:'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400&h=240&fit=crop&auto=format'},
-    {name:'Sole e Luna', desc:'Свиная вырезка, картофель, два соуса', price:565, popular:false,
-     img:'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=400&h=240&fit=crop&auto=format'},
+    {name:'Ягнёнок Toscano', badge:'Новый вкус', desc:'Новый вкус для вас — каре ягнёнка, розмарин, тимьян, полента и овощи на гриле. Magnifico!', price:1150,
+     img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=240&fit=crop&auto=format'},
   ]},
   {id:'desserts', label:'🍮 Десерты', emoji:'🍮', items:[
-    {name:'Тирамису', desc:'Рикота, сливки, савоярди, какао', price:350, popular:true,
+    {name:'Тирамису Fragola', badge:'Новинка', desc:'Попробуйте новый тирамису! Классический рецепт с клубничным компоте и лепестками базилика.', price:390,
      img:'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=240&fit=crop&auto=format'},
-    {name:'Панна котта', desc:'Сливочное суфле с соусом малины', price:370, popular:false,
-     img:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=240&fit=crop&auto=format'},
-    {name:'Фисташковый чизкейк', desc:'Творожный сыр, сливки, фисташки', price:460, popular:true,
+    {name:'Фисташковый чизкейк', badge:'Хит сезона', desc:'Наш самый популярный десерт! Нежный чизкейк с фисташковым кремом. Каждый день — как праздник.', price:460,
      img:'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=240&fit=crop&auto=format'},
-    {name:'Захер', desc:'Шоколадный бисквит, абрикосовый джем', price:495, popular:false,
-     img:'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=240&fit=crop&auto=format'},
+    {name:'Панна Cotta Mango', badge:'Новый вкус', desc:'Новый вкус для вас — нежная панна котта с манговым кули и хрустящей меренгой. Тропика!', price:420,
+     img:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=240&fit=crop&auto=format'},
   ]},
   {id:'soups', label:'🍲 Супы', emoji:'🍲', items:[
-    {name:'Минестроне', desc:'Томаты, цветная капуста, брокколи, цукини', price:350, popular:false,
-     img:'https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=240&fit=crop&auto=format'},
-    {name:'Суп с лососем', desc:'Лосось, треска, картофель, сливки', price:495, popular:true,
+    {name:'Суп с лососем', badge:'Новинка', desc:'Встречайте новинку! Лосось, треска, картофель, сливки и укроп — согревающий северный суп.', price:495,
      img:'https://images.unsplash.com/photo-1588566565463-180a5b1bf474?w=400&h=240&fit=crop&auto=format'},
-    {name:'Крем из грибов', desc:'Белые грибы, картофель, сливки, гренки', price:395, popular:false,
+    {name:'Крем-суп из трюфеля', badge:'Только у нас', desc:'Только у нас! Белые грибы, трюфельное масло, сливки и хрустящие гренки. Роскошь в тарелке.', price:550,
      img:'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=400&h=240&fit=crop&auto=format'},
-    {name:'Гуляш по-тоскански', desc:'Говядина, свинина, курица, нут', price:455, popular:false,
-     img:'https://images.unsplash.com/photo-1543158181-e6f9f6712055?w=400&h=240&fit=crop&auto=format'},
+    {name:'Минестроне Primavera', badge:'Новый вкус', desc:'Новый вкус для вас — лёгкий итальянский суп с сезонными овощами, нутом и песто. Viva Italia!', price:380,
+     img:'https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=240&fit=crop&auto=format'},
   ]},
 ];
 
@@ -1522,11 +1514,10 @@ function renderMenu(catId) {
   ).join('');
   const cat = MENU_CATEGORIES.find(c=>c.id===catId);
   if (!cat) return;
-  const sorted = [...cat.items].sort((a,b) => b.popular-a.popular);
-  gridEl.innerHTML = sorted.map(item => `
+  gridEl.innerHTML = cat.items.map(item => `
     <div class="menu-card">
       <div class="menu-card-img">
-        ${item.popular?'<div class="menu-card-featured">Хит</div>':''}
+        ${item.badge ? `<div class="menu-card-featured">${item.badge}</div>` : ''}
         <img src="${item.img}" alt="${item.name}" loading="lazy"
           onerror="this.style.display='none'"
           onload="this.classList.add('loaded')">
