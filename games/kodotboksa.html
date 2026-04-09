@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Код от бокса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#009246;--green-dark:#006B33;--green-light:#e8f7ee;
+  --red:#CE2B37;--red-dark:#9B1E27;--red-light:#fdeaea;
+  --gold:#C8A84B;--gold-light:#FFF8E1;--gold-dark:#8B6914;
+  --cream:#FEF9F0;--white:#fff;--gray:#888;--border:#e8e8e8;
+  --shadow-sm:0 2px 12px rgba(0,0,0,.08);--shadow-md:0 4px 24px rgba(0,0,0,.12);
+  --font-d:'Playfair Display',serif;--font-b:'Nunito',sans-serif;--r:16px;--rs:10px;
+}
+html,body{height:100%;background:#1a1a2e;font-family:var(--font-b);-webkit-font-smoothing:antialiased}
+#app{max-width:430px;margin:0 auto;background:var(--cream);min-height:100vh;position:relative;overflow-x:hidden}
+.tricolore{height:6px;background:linear-gradient(to right,var(--green) 33.33%,#fff 33.33%,#fff 66.66%,var(--red) 66.66%);position:sticky;top:0;z-index:100}
+.header{background:#fff;padding:10px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:6px;z-index:99;box-shadow:var(--shadow-sm)}
+.header-title{font-family:var(--font-d);font-size:22px;color:var(--green-dark);line-height:1}
+.header-sub{font-size:10px;color:var(--gray);font-weight:600;margin-top:1px}
+.live-badge{background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:5px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1.2px;animation:pulse 2s infinite;display:flex;align-items:center;gap:4px}
+.live-dot{width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:calc(6px + 54px);z-index:98}
+.tab{flex:1;padding:9px 3px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;text-align:center;color:#bbb;cursor:pointer;border-bottom:2.5px solid transparent;transition:all .2s;position:relative}
+.tab.active{color:var(--green-dark);border-bottom-color:var(--green)}
+.tab-badge{position:absolute;top:4px;right:6px;background:var(--red);color:#fff;font-size:8px;font-weight:900;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.stats-bar{background:var(--green);display:flex;padding:8px 0;position:relative;overflow:hidden}
+.stats-bar::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.03) 20px,rgba(255,255,255,.03) 40px)}
+.stat-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;position:relative;z-index:1}
+.stat-item+.stat-item::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:1px;background:rgba(255,255,255,.25)}
+.stat-num{font-size:18px;font-weight:900;color:#fff;line-height:1}
+.stat-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px}
+.screen-area{display:none;padding:12px;flex-direction:column;gap:10px}
+.screen-area.active{display:flex}
+.card{background:#fff;border-radius:var(--r);padding:13px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.card-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--red);margin-bottom:10px}
+.box-hero{background:#fff;border-radius:var(--r);padding:14px;box-shadow:var(--shadow-md);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden}
+.box-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(to right,var(--green),var(--gold),var(--red))}
+.box-wrapper{position:relative;width:130px;height:130px;margin-bottom:8px}
+.box-wrapper svg{width:100%;height:100%;filter:drop-shadow(0 5px 14px rgba(0,0,0,.14));transition:transform .3s}
+.box-wrapper:hover svg{transform:scale(1.04) rotate(-1deg)}
+.glow-ring{position:absolute;inset:-10px;border-radius:50%;border:2px solid rgba(0,146,70,.12);animation:spinRing 8s linear infinite;pointer-events:none}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+.prize-name{font-family:var(--font-d);font-size:17px;color:var(--green-dark);margin-bottom:2px}
+.prize-value{font-size:11px;color:var(--gray);font-weight:600}
+.social-proof-row{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#666;font-weight:600}
+.avatars{display:flex}
+.avatar{width:21px;height:21px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;color:#fff;margin-left:-5px}
+.avatar:first-child{margin-left:0}
+.progress-wrap{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:8px;width:100%}
+.progress-bar{height:100%;background:linear-gradient(to right,var(--green),var(--gold));border-radius:3px;transition:width .6s ease}
+.progress-label{font-size:10px;color:#aaa;font-weight:600;margin-top:2px;align-self:flex-end}
+.attempts-row{display:flex;align-items:center;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap}
+.attempt-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;transition:all .3s}
+.attempt-dot.active{background:var(--green);color:#fff;box-shadow:0 2px 5px rgba(0,146,70,.4)}
+.attempt-dot.used{background:#eee;color:#bbb}
+.attempts-label{font-size:11px;color:#888;font-weight:700}
+.digit-row{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+.digits{display:flex;gap:6px;flex:1;justify-content:center}
+.digit{width:58px;height:58px;border:2.5px solid var(--border);border-radius:var(--rs);font-size:28px;font-weight:900;text-align:center;color:var(--green-dark);font-family:var(--font-d);background:var(--green-light);outline:none;transition:all .2s;-moz-appearance:textfield;-webkit-appearance:none}
+.digit::-webkit-inner-spin-button,.digit::-webkit-outer-spin-button{-webkit-appearance:none}
+.digit:focus{border-color:var(--green);transform:scale(1.08);box-shadow:0 0 0 3px rgba(0,146,70,.15);background:#fff}
+.digit.error-flash{border-color:var(--red);background:var(--red-light);animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.btn-check{height:58px;padding:0 14px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;font-family:var(--font-b);box-shadow:0 3px 10px rgba(0,146,70,.3);transition:all .2s}
+.btn-check:hover{background:var(--green-dark)}
+.btn-check:active{transform:scale(.96)}
+.btn-check:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
+.error-banner{display:none;background:var(--red-light);border:1.5px solid var(--red);color:var(--red-dark);border-radius:var(--rs);padding:7px 11px;font-size:12px;font-weight:700;text-align:center;margin-top:4px}
+.timer-row{display:none;align-items:center;justify-content:space-between;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--rs);padding:7px 11px;margin-top:6px}
+.timer-label{font-size:11px;font-weight:700;color:var(--green-dark)}
+.timer-val{font-size:15px;font-weight:900;color:var(--green-dark);font-family:monospace}
+.mini-matrix-wrap{background:#f5f5f5;border-radius:var(--rs);padding:5px;margin-bottom:7px}
+.mini-matrix{display:grid;grid-template-columns:repeat(40,1fr);gap:1.5px}
+.mc{aspect-ratio:1;border-radius:1px;background:var(--green);transition:background .4s}
+.mc.eliminated{background:#d0d0d0}
+.mc.my-attempt{background:var(--gold)}
+.mc.winning{background:var(--red);animation:winFlash 1s infinite}
+@keyframes winFlash{0%,100%{opacity:1}50%{opacity:.5}}
+.matrix-legend{display:flex;gap:10px;margin-bottom:7px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#666;font-weight:600}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.grid-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.filter-group{display:flex;gap:3px}
+.filter-btn{padding:3px 7px;border:1.5px solid var(--border);border-radius:20px;font-size:10px;font-weight:700;background:#fff;cursor:pointer;color:#666;font-family:var(--font-b);transition:all .15s}
+.filter-btn.active{background:var(--green);border-color:var(--green);color:#fff}
+.search-box{width:100%;padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:var(--font-b);color:#333;outline:none;background:#fff;margin-bottom:7px;transition:border-color .2s}
+.search-box:focus{border-color:var(--green)}
+.combo-list{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-height:200px;overflow-y:auto;padding-right:2px}
+.combo-list::-webkit-scrollbar{width:3px}
+.combo-list::-webkit-scrollbar-thumb{background:var(--green);border-radius:3px}
+.cc{padding:5px 2px;text-align:center;border-radius:6px;font-size:11px;font-weight:800;font-family:monospace;border:1.5px solid transparent;background:var(--green-light);color:var(--green-dark);cursor:pointer;transition:all .2s;user-select:none}
+.cc:hover{transform:scale(1.07);border-color:var(--green)}
+.cc.eliminated{background:#f0f0f0;color:#bbb;text-decoration:line-through;cursor:default}
+.cc.eliminated:hover{transform:none}
+.cc.my-attempt{background:var(--gold-light);color:var(--gold-dark);border-color:var(--gold)}
+.cc.winning{background:var(--red-light);color:var(--red-dark);border-color:var(--red)}
+.more-hint{grid-column:span 5;text-align:center;font-size:10px;color:#aaa;padding:5px 0;font-weight:600}
+.invite-card{background:linear-gradient(135deg,var(--green-light),#fff);border:1.5px solid var(--green);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);text-decoration:none}
+.invite-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.invite-icon{width:40px;height:40px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(0,146,70,.3)}
+.invite-text{flex:1}
+.invite-title{font-size:13px;font-weight:800;color:var(--green-dark)}
+.invite-sub{font-size:11px;color:#888;margin-top:1px}
+/* QUESTS */
+.quest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.quest-attempts-pill{display:flex;align-items:center;gap:5px;background:var(--green-light);border:1.5px solid var(--green);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:800;color:var(--green-dark)}
+.quest-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.quest-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.quest-card.lvl1::before{background:var(--green)}
+.quest-card.lvl2::before{background:var(--gold)}
+.quest-card.lvl3::before{background:var(--red)}
+.quest-card.lvl4::before{background:#9b59b6}
+.quest-card.lvl5::before{background:#e67e22}
+.quest-card:hover:not(.done){transform:translateX(3px);border-color:var(--green);box-shadow:var(--shadow-sm)}
+.quest-card.done{opacity:.55;pointer-events:none}
+.quest-card.done::after{content:'✓';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:22px;height:22px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
+.quest-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.quest-info{flex:1;min-width:0}
+.quest-name{font-size:12px;font-weight:800;color:#333;margin-bottom:1px}
+.quest-desc{font-size:10px;color:#888;font-weight:600}
+.quest-reward{display:flex;align-items:center;gap:2px;background:var(--green-light);color:var(--green-dark);border-radius:20px;padding:3px 7px;font-size:10px;font-weight:900;flex-shrink:0;white-space:nowrap}
+.section-header{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#666;padding:4px 2px;display:flex;align-items:center;gap:6px}
+.section-header b{font-size:10px;font-weight:900}
+/* QUEST MODAL */
+.quest-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center}
+.quest-modal.active{display:flex;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0}to{opacity:1}}
+.quest-modal-inner{background:#fff;border-radius:22px 22px 0 0;padding:20px 18px 32px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto}
+.qm-handle{width:38px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px}
+.qm-icon-big{font-size:44px;text-align:center;margin-bottom:8px}
+.qm-title{font-family:var(--font-d);font-size:20px;color:#333;margin-bottom:3px;text-align:center}
+.qm-sub{font-size:12px;color:#888;font-weight:600;margin-bottom:16px;text-align:center}
+.fake-upload{background:#f7f7f7;border-radius:var(--r);padding:32px;text-align:center;margin:0 0 14px;border:2px dashed #ddd;cursor:pointer;transition:all .2s}
+.fake-upload:hover{border-color:var(--green);background:var(--green-light)}
+.fake-upload-icon{font-size:36px;display:block;margin-bottom:6px}
+.fake-upload-text{font-size:12px;color:#888;font-weight:600}
+.qm-reward-box{background:var(--green-light);border-radius:var(--rs);padding:9px 13px;text-align:center;margin-bottom:14px}
+.qm-reward-label{font-size:10px;color:var(--green-dark);font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.qm-reward-val{font-size:20px;font-weight:900;color:var(--green-dark)}
+.qm-action-btn{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:900;cursor:pointer;font-family:var(--font-b);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;transition:all .2s;box-shadow:0 4px 12px rgba(0,146,70,.3)}
+.qm-action-btn:hover{background:var(--green-dark)}
+.qm-cancel-btn{width:100%;padding:12px;background:#fff;color:#888;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-b)}
+/* FEED */
+.feed-item{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:12px 13px;margin-bottom:8px;animation:slideIn .35s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.feed-header{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.feed-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.feed-name{font-size:13px;font-weight:800;color:#333}
+.feed-time{font-size:10px;color:#aaa;font-weight:600}
+.feed-action{font-size:12px;color:#666;font-weight:600;margin-bottom:4px}
+.feed-quest-badge{display:inline-flex;align-items:center;gap:3px;background:var(--green-light);color:var(--green-dark);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:800;margin-bottom:7px}
+.feed-photo{width:100%;height:130px;background:#f5f5f5;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:7px;cursor:pointer;transition:transform .2s}
+.feed-photo:hover{transform:scale(1.02)}
+.feed-actions-row{display:flex;gap:7px}
+.feed-action-btn{display:flex;align-items:center;gap:3px;padding:5px 9px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#666;transition:all .2s;font-family:var(--font-b)}
+.feed-action-btn:hover{border-color:var(--red);color:var(--red)}
+.feed-action-btn.liked{background:var(--red-light);border-color:var(--red);color:var(--red)}
+.feed-lvl-tag{display:inline-flex;align-items:center;gap:3px;background:var(--gold-light);color:var(--gold-dark);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:800;border:1px solid var(--gold);margin-left:auto}
+/* VOTING */
+.vote-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:13px;margin-bottom:10px}
+.vote-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.vote-title{font-size:14px;font-weight:800;color:#333}
+.vote-subtitle{font-size:10px;color:#888;font-weight:600;margin-top:1px}
+.vote-end{background:var(--red-light);color:var(--red-dark);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:800;white-space:nowrap;margin-left:6px}
+.vote-options{display:flex;flex-direction:column;gap:7px}
+.vote-option{display:flex;align-items:center;gap:9px;cursor:pointer;padding:9px;border-radius:var(--rs);border:1.5px solid var(--border);transition:all .2s;position:relative;overflow:hidden}
+.vote-option:hover:not(.reveal){border-color:var(--green)}
+.vote-option.reveal{cursor:default}
+.vote-option.voted{border-color:var(--green);background:var(--green-light)}
+.vote-option-img{width:48px;height:48px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:26px;background:#f5f5f5;flex-shrink:0}
+.vote-option-info{flex:1;min-width:0}
+.vote-option-name{font-size:12px;font-weight:800;color:#333}
+.vote-option-sub{font-size:10px;color:#888;font-weight:600;margin-top:1px}
+.vote-bar-wrap{height:4px;background:#eee;border-radius:2px;margin-top:5px;overflow:hidden}
+.vote-bar{height:100%;background:var(--green);border-radius:2px;transition:width .6s ease}
+.vote-pct{font-size:10px;font-weight:800;color:var(--green-dark);margin-top:2px}
+.vote-winner-badge{background:var(--gold);color:#fff;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:900;margin-left:auto;flex-shrink:0}
+/* BADGES */
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.badge-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);padding:13px 9px;text-align:center;position:relative;overflow:hidden;transition:transform .2s;cursor:default}
+.badge-card:hover{transform:translateY(-2px)}
+.badge-card.unlocked{border-width:2px}
+.badge-card.locked{opacity:.45;filter:grayscale(.9)}
+.badge-emoji{font-size:30px;display:block;margin-bottom:5px}
+.badge-name{font-size:11px;font-weight:800;color:#333;line-height:1.3}
+.badge-desc{font-size:9px;color:#888;margin-top:2px;font-weight:600}
+.badge-stamp{position:absolute;top:5px;right:5px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:900}
+/* RESULT OVERLAYS */
+.result-overlay{display:none;position:fixed;inset:0;z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;overflow-y:auto}
+.result-overlay.active{display:flex;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.result-overlay.fail-overlay{background:linear-gradient(180deg,#fff5f5,#fff)}
+.result-overlay.win-overlay{background:linear-gradient(180deg,var(--green-light),#fff)}
+.overlay-tri{position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(to right,var(--green) 33.33%,#fff 33.33%,#fff 66.66%,var(--red) 66.66%)}
+.result-icon-big{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:14px;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes popIn{0%{transform:scale(0) rotate(-20deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+.result-icon-big.fail{background:var(--red-light)}
+.result-icon-big.win{background:var(--green-light)}
+.result-title-big{font-family:var(--font-d);font-size:26px;margin-bottom:5px;font-weight:900}
+.result-title-big.fail{color:var(--red)}
+.result-title-big.win{color:var(--green-dark)}
+.result-sub{font-size:12px;color:#888;font-weight:600;margin-bottom:7px}
+.big-code{font-family:var(--font-d);font-size:46px;font-weight:900;letter-spacing:10px;padding:11px 18px;border-radius:var(--r);margin-bottom:12px;line-height:1}
+.big-code.fail{background:var(--red-light);color:var(--red)}
+.big-code.win{background:var(--green-light);color:var(--green-dark)}
+.prize-banner{background:var(--green);color:#fff;border-radius:var(--r);padding:13px 18px;width:100%;max-width:310px;margin-bottom:14px;box-shadow:0 5px 18px rgba(0,146,70,.28)}
+.prize-banner-label{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.prize-banner-name{font-family:var(--font-d);font-size:19px;font-weight:700}
+.prize-banner-val{font-size:11px;opacity:.85;margin-top:2px}
+.fail-timer{background:var(--red-light);border:1.5px solid var(--red);border-radius:var(--rs);padding:9px 14px;display:flex;align-items:center;justify-content:space-between;width:100%;max-width:310px;margin-bottom:12px}
+.fail-timer-label{font-size:11px;font-weight:700;color:var(--red-dark)}
+.fail-timer-val{font-size:17px;font-weight:900;font-family:monospace;color:var(--red-dark)}
+.fail-quest-offer{background:var(--gold-light);border:1.5px solid var(--gold);border-radius:var(--r);padding:13px;width:100%;max-width:310px;margin-bottom:10px;text-align:center}
+.fail-quest-offer-title{font-size:13px;font-weight:900;color:var(--gold-dark);margin-bottom:3px}
+.fail-quest-offer-sub{font-size:11px;color:#888;font-weight:600;margin-bottom:9px}
+.btn-primary{width:100%;max-width:310px;padding:13px;border:none;border-radius:var(--r);font-size:13px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;font-family:var(--font-b);transition:all .2s;margin-bottom:7px}
+.btn-primary.green{background:var(--green);color:#fff;box-shadow:0 5px 14px rgba(0,146,70,.28)}
+.btn-primary.green:hover{background:var(--green-dark)}
+.btn-primary.red{background:var(--red);color:#fff;box-shadow:0 5px 14px rgba(206,43,55,.28)}
+.btn-primary.red:hover{background:var(--red-dark)}
+.btn-primary.gold{background:var(--gold);color:#fff}
+.btn-primary.outline{background:#fff;color:var(--green-dark);border:2px solid var(--green)}
+.btn-primary.outline:hover{background:var(--green-light)}
+.btn-primary:active{transform:scale(.97)}
+.stars{display:flex;gap:4px;justify-content:center;margin-bottom:9px}
+.star{font-size:20px;animation:starPop .4s ease forwards;opacity:0}
+.star:nth-child(2){animation-delay:.15s}
+.star:nth-child(3){animation-delay:.3s}
+@keyframes starPop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:1}}
+.confetti-container{position:fixed;inset:0;pointer-events:none;z-index:400;overflow:hidden}
+.confetti-piece{position:absolute;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a2e;color:#fff;padding:10px 18px;border-radius:22px;font-size:12px;font-weight:700;z-index:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="tricolore"></div>
+  <header class="header">
+    <div>
+      <div class="header-title">Код от бокса</div>
+      <div class="header-sub">Угадай — забери приз</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+  </header>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('game')" id="tab-game">Игра</div>
+    <div class="tab" onclick="switchTab('quests')" id="tab-quests">Квесты<span class="tab-badge" id="tbq">3</span></div>
+    <div class="tab" onclick="switchTab('feed')" id="tab-feed">Лента<span class="tab-badge" id="tbf" style="display:none">!</span></div>
+    <div class="tab" onclick="switchTab('vote')" id="tab-vote">Голос.</div>
+    <div class="tab" onclick="switchTab('badges')" id="tab-badges">Бейджи</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num" id="stat-players">247</span><span class="stat-label">Игроков</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-elim">30</span><span class="stat-label">Исключено</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-left">970</span><span class="stat-label">Осталось</span></div>
+    <div class="stat-item"><span class="stat-num" id="stat-att">1</span><span class="stat-label">Попытки</span></div>
+  </div>
+
+  <!-- ═══ GAME ═══ -->
+  <div class="screen-area active" id="area-game">
+    <div class="box-hero">
+      <div class="box-wrapper"><div class="glow-ring"></div>
+        <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="70" width="120" height="80" rx="10" fill="#fff" stroke="#e8e8e8" stroke-width="2"/>
+          <path d="M20 140h120v10a10 10 0 0 1-10 10H30a10 10 0 0 1-10-10z" fill="#f0f0f0"/>
+          <rect x="14" y="58" width="132" height="26" rx="9" fill="#CE2B37"/>
+          <rect x="14" y="67" width="132" height="10" fill="#B02430"/>
+          <rect x="72" y="58" width="16" height="92" fill="rgba(200,168,75,.7)"/>
+          <rect x="14" y="68" width="132" height="12" fill="rgba(200,168,75,.7)"/>
+          <rect x="60" y="36" width="40" height="32" rx="5" fill="#C8A84B"/>
+          <rect x="62" y="42" width="36" height="26" rx="4" fill="#E8C56A"/>
+          <path d="M72 42Q72 24 80 24Q88 24 88 42" fill="none" stroke="#A07830" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="80" cy="52" r="5" fill="#A07830"/>
+          <rect x="78" y="52" width="4" height="8" rx="2" fill="#A07830"/>
+          <path d="M72 58Q60 46 55 50Q50 54 60 60Z" fill="#CE2B37"/>
+          <path d="M88 58Q100 46 105 50Q110 54 100 60Z" fill="#CE2B37"/>
+          <circle cx="80" cy="60" r="6" fill="#9B1E27"/>
+          <text x="80" y="104" text-anchor="middle" font-family="'Playfair Display',serif" font-size="10" font-weight="700" fill="#bbb">iPhone 16 Pro</text>
+          <text x="80" y="118" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#ccc">120 000 ₽</text>
+          <text x="57" y="97" text-anchor="middle" font-family="Playfair Display" font-size="13" font-weight="900" fill="#ddd">?</text>
+          <text x="103" y="97" text-anchor="middle" font-family="Playfair Display" font-size="13" font-weight="900" fill="#ddd">?</text>
+        </svg>
+      </div>
+      <div class="prize-name">iPhone 16 Pro</div>
+      <div class="prize-value">стоимостью 120 000 ₽</div>
+      <div class="social-proof-row">
+        <div class="avatars">
+          <div class="avatar" style="background:#009246">АС</div>
+          <div class="avatar" style="background:#CE2B37">МК</div>
+          <div class="avatar" style="background:#C8A84B">ИВ</div>
+          <div class="avatar" style="background:#555">+244</div>
+        </div>
+        <span>участвуют сегодня</span>
+      </div>
+      <div class="attempts-row" id="attempts-row"><span class="attempts-label">Попытки:</span></div>
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:3%"></div></div>
+      <div class="progress-label" id="progress-label">30 из 1000 исключено</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Введи трёхзначный код</div>
+      <div class="digit-row">
+        <div class="digits">
+          <input class="digit" type="tel" inputmode="numeric" pattern="[0-9]*" id="d1" min="0" max="9" placeholder="0" autocomplete="off">
+          <input class="digit" type="tel" inputmode="numeric" pattern="[0-9]*" id="d2" min="0" max="9" placeholder="0" autocomplete="off">
+          <input class="digit" type="tel" inputmode="numeric" pattern="[0-9]*" id="d3" min="0" max="9" placeholder="0" autocomplete="off">
+        </div>
+        <button class="btn-check" id="btn-check" onclick="tryCode()">Проверить</button>
+      </div>
+      <div class="error-banner" id="err-banner"></div>
+      <div class="timer-row" id="timer-row">
+        <span class="timer-label">Следующая попытка через</span>
+        <span class="timer-val" id="timer-val">23:59:59</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="grid-top">
+        <div class="card-label" style="margin-bottom:0">Поле комбинаций</div>
+        <div class="filter-group">
+          <button class="filter-btn active" id="f-all" onclick="setFilter('all')">Все</button>
+          <button class="filter-btn" id="f-avail" onclick="setFilter('avail')">Своб.</button>
+          <button class="filter-btn" id="f-elim" onclick="setFilter('elim')">Искл.</button>
+        </div>
+      </div>
+      <div class="mini-matrix-wrap"><div class="mini-matrix" id="mini-matrix"></div></div>
+      <div class="matrix-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Свободна</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#d0d0d0"></div>Исключена</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Моя</div>
+      </div>
+      <input class="search-box" type="text" id="search-input" placeholder="Поиск: 348" maxlength="3" oninput="renderGrid()">
+      <div class="combo-list" id="combo-list"></div>
+    </div>
+    <a class="invite-card" href="#" onclick="event.preventDefault();doInvite()">
+      <div class="invite-icon">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="invite-text">
+        <div class="invite-title">Позови умного друга</div>
+        <div class="invite-sub">+1 попытка когда друг сыграет</div>
+      </div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#009246" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ═══ QUESTS ═══ -->
+  <div class="screen-area" id="area-quests">
+    <div class="card">
+      <div class="quest-header">
+        <div>
+          <div class="card-label" style="margin-bottom:2px">Квесты</div>
+          <div style="font-size:11px;color:#888;font-weight:600">Выполняй задания — получай попытки</div>
+        </div>
+        <div class="quest-attempts-pill">⏱ <span id="qa-display">1 попытка</span></div>
+      </div>
+      <div style="background:var(--gold-light);border:1.5px solid var(--gold);border-radius:var(--rs);padding:8px 11px;font-size:11px;font-weight:700;color:var(--gold-dark)">
+        ⚡ Макс. 7 попыток в день · Базовая 1 + до 6 за квесты
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">⭐ Ежедневные квесты — обновляются каждый день</div>
+      <div id="daily-list"></div>
+    </div>
+    <div class="section-header">🟢 Уровень 1 — Быстрые <b style="color:var(--green)">+1</b></div>
+    <div id="ql1"></div>
+    <div class="section-header">🟡 Уровень 2 — Социальные <b style="color:var(--gold-dark)">+2</b></div>
+    <div id="ql2"></div>
+    <div class="section-header">🔴 Уровень 3 — Вирусные <b style="color:var(--red)">+3</b></div>
+    <div id="ql3"></div>
+    <div class="section-header">🟣 Уровень 4 — Челленджи <b style="color:#9b59b6">+4</b></div>
+    <div id="ql4"></div>
+    <div class="section-header">🌟 Уровень 5 — Легендарные <b style="color:#e67e22">Редкие</b></div>
+    <div id="ql5"></div>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ═══ FEED ═══ -->
+  <div class="screen-area" id="area-feed">
+    <div class="card" style="padding:9px 13px;text-align:center;font-size:11px;color:#888;font-weight:600">Живая лента событий игры</div>
+    <div id="feed-list"></div>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ═══ VOTE ═══ -->
+  <div class="screen-area" id="area-vote">
+    <div class="card" style="padding:9px 13px;text-align:center;font-size:11px;color:#888;font-weight:600">Голосуй — победитель получает +3 попытки и бейдж</div>
+    <div id="vote-list"></div>
+    <div style="height:12px"></div>
+  </div>
+
+  <!-- ═══ BADGES ═══ -->
+  <div class="screen-area" id="area-badges">
+    <div class="card">
+      <div class="card-label">Мои бейджи</div>
+      <div style="font-size:11px;color:#888;font-weight:600;margin-bottom:11px">Открывай достижения за квесты и активность</div>
+      <div class="badges-grid" id="badges-grid"></div>
+    </div>
+    <div style="height:12px"></div>
+  </div>
+</div>
+
+<!-- QUEST MODAL -->
+<div class="quest-modal" id="quest-modal" onclick="if(event.target===this)closeQuestModal()">
+  <div class="quest-modal-inner">
+    <div class="qm-handle"></div>
+    <div class="qm-icon-big" id="qm-icon">🍕</div>
+    <div class="qm-title" id="qm-title"></div>
+    <div class="qm-sub" id="qm-sub"></div>
+    <div class="fake-upload" id="qm-upload" onclick="toast('Откройте камеру или галерею...')">
+      <span class="fake-upload-icon" id="qm-upload-icon">📷</span>
+      <div class="fake-upload-text" id="qm-upload-text">Нажми чтобы добавить контент</div>
+    </div>
+    <div class="qm-reward-box">
+      <div class="qm-reward-label">Награда</div>
+      <div class="qm-reward-val" id="qm-reward-val">+1 попытка</div>
+    </div>
+    <button class="qm-action-btn" id="qm-btn" onclick="completeQuest()">Выполнить</button>
+    <button class="qm-cancel-btn" onclick="closeQuestModal()">Отмена</button>
+  </div>
+</div>
+
+<!-- FAIL OVERLAY -->
+<div class="result-overlay fail-overlay" id="screen-fail">
+  <div class="overlay-tri"></div>
+  <div class="result-icon-big fail">✕</div>
+  <div class="result-title-big fail">Не угадал!</div>
+  <div class="result-sub">Ты проверил код</div>
+  <div class="big-code fail" id="fail-code">???</div>
+  <div class="result-sub" style="margin-bottom:10px">Эта комбинация исключена у всех</div>
+  <div class="fail-timer">
+    <span class="fail-timer-label">Следующая попытка через</span>
+    <span class="fail-timer-val" id="timer-val2">23:59:59</span>
+  </div>
+  <div class="fail-quest-offer">
+    <div class="fail-quest-offer-title">🎯 Хочешь ещё попытку?</div>
+    <div class="fail-quest-offer-sub">Выполни быстрый квест — займёт 15 секунд!</div>
+    <button class="btn-primary gold" style="margin-bottom:0" onclick="goToQuests()">Смотреть квесты</button>
+  </div>
+  <button class="btn-primary red" onclick="shareAttempt()">Поделиться результатом</button>
+  <button class="btn-primary outline" onclick="backToGame()">Следить за прогрессом</button>
+</div>
+
+<!-- WIN OVERLAY -->
+<div class="result-overlay win-overlay" id="screen-win">
+  <div class="overlay-tri"></div>
+  <div class="stars"><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div>
+  <div class="result-icon-big win">🏆</div>
+  <div class="result-title-big win">Ты открыл бокс!</div>
+  <div class="result-sub">Правильный код</div>
+  <div class="big-code win" id="win-code">???</div>
+  <div class="prize-banner">
+    <div class="prize-banner-label">Твой приз</div>
+    <div class="prize-banner-name">iPhone 16 Pro</div>
+    <div class="prize-banner-val">стоимостью 120 000 ₽</div>
+  </div>
+  <button class="btn-primary green" onclick="toast('Переходим к форме получения приза...')">Получить приз</button>
+  <button class="btn-primary red" onclick="shareWin()">Поделиться победой</button>
+</div>
+
+<div class="confetti-container" id="confetti"></div>
+<div class="toast" id="toast-el"></div>
+
+<script>
+/* ═══════ STATE ═══════ */
+const SECRET=Math.floor(Math.random()*1000);
+const states=new Array(1000).fill('available');
+let myAttempts=[];
+let attemptsLeft=1,attemptsMax=1;
+let filterMode='all',timerInterval=null;
+let activeQuestId=null;
+const questsDone=new Set(),unlockedBadges=new Set();
+function pad(n){return String(n).padStart(3,'0');}
+function pl(n){return n===1?'попытка':n>=2&&n<=4?'попытки':'попыток';}
+
+/* ═══════ QUESTS DATA ═══════ */
+const QD={
+  daily:[
+    {id:'dy1',icon:'🍕',name:'Сфотографируй пиццу',desc:'Сделай фото любой пиццы',reward:1,lvl:1,type:'photo',badge:'photographer'},
+    {id:'dy2',icon:'✍️',name:'Придумай название пиццы',desc:'Самое смешное название',reward:1,lvl:1,type:'text',badge:null},
+    {id:'dy3',icon:'👍',name:'Поставь реакции',desc:'Поставь лайки на 3 фото в ленте',reward:1,lvl:1,type:'feed',badge:null},
+  ],
+  lvl1:[
+    {id:'l1a',icon:'🤳',name:'Селфи возле пиццерии',desc:'Фото возле любой пиццерии',reward:1,lvl:1,type:'photo',badge:'photographer'},
+    {id:'l1b',icon:'😄',name:'Смешная подпись',desc:'Придумай подпись к фото пиццы',reward:1,lvl:1,type:'text',badge:null},
+    {id:'l1c',icon:'🗳️',name:'Голосуй за топпинг',desc:'Выбери самый странный топпинг',reward:1,lvl:1,type:'vote',badge:null},
+  ],
+  lvl2:[
+    {id:'l2a',icon:'🖼️',name:'Коллаж идеальной пиццы',desc:'Собери коллаж из 4 фото',reward:2,lvl:2,type:'photo',badge:'artist'},
+    {id:'l2b',icon:'💬',name:'Смешной комментарий',desc:'Напиши комментарий к посту игры',reward:2,lvl:2,type:'text',badge:'memer'},
+    {id:'l2c',icon:'👥',name:'Отметь друга',desc:'Отметь друга который любит пиццу',reward:2,lvl:2,type:'invite',badge:null},
+    {id:'l2d',icon:'🏆',name:'Выбери пиццу дня',desc:'Проголосуй за лучшую пиццу',reward:2,lvl:2,type:'vote',badge:null},
+  ],
+  lvl3:[
+    {id:'l3a',icon:'🤪',name:'Самая странная пицца',desc:'Сфотографируй самую странную',reward:3,lvl:3,type:'photo',badge:'weird'},
+    {id:'l3b',icon:'😂',name:'Мем про пиццу',desc:'Создай мем с фото пиццы',reward:3,lvl:3,type:'photo',badge:'memer'},
+    {id:'l3c',icon:'📸',name:'Сторис с пиццей',desc:'Опубликуй сторис с хэштегом',reward:3,lvl:3,type:'share',badge:null},
+    {id:'l3d',icon:'👫',name:'Пригласи 2 друзей',desc:'Пришли ссылку 2 друзьям',reward:3,lvl:3,type:'invite',badge:'inviter'},
+  ],
+  lvl4:[
+    {id:'l4a',icon:'🌍',name:'Пицца в необычном месте',desc:'Фото в парке/горах/море',reward:4,lvl:4,type:'photo',badge:'traveler'},
+    {id:'l4b',icon:'♻️',name:'Повтори пицца-мем',desc:'Сделай ремейк популярного мема',reward:4,lvl:4,type:'photo',badge:'memer'},
+    {id:'l4c',icon:'💭',name:'Пицца моей мечты',desc:'Создай коллаж идеальной пиццы',reward:4,lvl:4,type:'photo',badge:'artist'},
+  ],
+  lvl5:[
+    {id:'l5a',icon:'✈️',name:'Пицца за рубежом',desc:'Фото с пиццей в другой стране',reward:5,lvl:5,type:'photo',badge:'legend'},
+    {id:'l5b',icon:'🇮🇹',name:'Пицца в Италии',desc:'Легендарный квест — пицца в Италии',reward:5,lvl:5,type:'photo',badge:'legend'},
+    {id:'l5c',icon:'📜',name:'Необычный рецепт',desc:'Опиши уникальный рецепт пиццы',reward:5,lvl:5,type:'text',badge:'legend'},
+  ],
+};
+
+/* ═══════ BADGES DATA ═══════ */
+const BD=[
+  {id:'photographer',icon:'📷',name:'Пицца-фотограф',desc:'Сделал фото квест',color:'#CE2B37'},
+  {id:'memer',icon:'😂',name:'Пицца-мемолог',desc:'Создал мем',color:'#9b59b6'},
+  {id:'artist',icon:'🎨',name:'Пицца-художник',desc:'Сделал коллаж',color:'#e67e22'},
+  {id:'inviter',icon:'🤝',name:'Пицца-напарник',desc:'Пригласил друзей',color:'#009246'},
+  {id:'traveler',icon:'🧳',name:'Пицца-путешественник',desc:'Фото в необычном месте',color:'#1a6b8a'},
+  {id:'detective',icon:'🔍',name:'Пицца-детектив',desc:'Угадал правильный код',color:'#C8A84B'},
+  {id:'weird',icon:'🤪',name:'Король странного',desc:'Нашёл самую странную пиццу',color:'#CE2B37'},
+  {id:'legend',icon:'🌟',name:'Пицца-легенда',desc:'Выполнил легендарный квест',color:'#C8A84B'},
+  {id:'daily_hero',icon:'🔥',name:'Ежедневный игрок',desc:'Выполнил 3 ежедневных квеста',color:'#e74c3c'},
+];
+
+/* ═══════ FEED DATA ═══════ */
+const feedData=[
+  {user:'Анна С.',color:'#009246',init:'АС',action:'выполнила квест',quest:'Фото с пиццей 🍕',time:'2 мин назад',photo:'🍕',lvl:'Уровень 1'},
+  {user:'Максим К.',color:'#CE2B37',init:'МК',action:'выполнил квест',quest:'Самая странная пицца 🤪',time:'5 мин назад',photo:'🤪',lvl:'Уровень 3'},
+  {user:'Игорь В.',color:'#C8A84B',init:'ИВ',action:'пригласил 2 друзей в игру',quest:null,time:'12 мин назад',photo:null,lvl:null},
+  {user:'Саша Р.',color:'#9b59b6',init:'СР',action:'выполнил квест',quest:'Мем про пиццу 😂',time:'18 мин назад',photo:'😂',lvl:'Уровень 3'},
+  {user:'Ольга М.',color:'#e67e22',init:'ОМ',action:'получила бейдж 🎨 Пицца-художник',quest:null,time:'25 мин назад',photo:null,lvl:null},
+  {user:'Дима Т.',color:'#1a6b8a',init:'ДТ',action:'выполнил квест',quest:'Коллаж идеальной пиццы 🖼️',time:'31 мин назад',photo:'🖼️',lvl:'Уровень 2'},
+  {user:'Катя Н.',color:'#CE2B37',init:'КН',action:'проголосовала за',quest:'Самая смешная пицца',time:'45 мин назад',photo:null,lvl:null},
+];
+const feedLikes=feedData.map(f=>f.photo?Math.floor(Math.random()*20)+1:0);
+const feedLiked=feedData.map(()=>false);
+
+/* ═══════ VOTES DATA ═══════ */
+const votesData=[
+  {id:'v1',title:'Самая смешная пицца',sub:'Голосование до конца дня',ends:'18:44',
+   opts:[{n:'Пицца с бананом',e:'🍌',v:42,s:'от @pizza_master'},{n:'Пицца с мармеладом',e:'🍬',v:28,s:'от @sweet_chef'},{n:'Пицца с чипсами',e:'🥔',v:19,s:'от @crazy_cook'}]},
+  {id:'v2',title:'Самый странный топпинг',sub:'Постоянное голосование',ends:'Всегда',
+   opts:[{n:'Арбуз',e:'🍉',v:65,s:'Да, арбуз!'},{n:'Кукурузные хлопья',e:'🌽',v:45,s:'Хрустящее'},{n:'Мороженое',e:'🍦',v:31,s:'Холодно-горячо'},{n:'Нутелла',e:'🍫',v:22,s:'Сладкий грех'}]},
+];
+const votedOn={};
+
+/* ═══════ INIT ═══════ */
+const fakeE=[142,387,504,61,899,230,715,46,981,123,456,789,321,654,987,100,200,300,400,500,11,22,33,44,55,66,77,88,99,110];
+fakeE.forEach(n=>{if(n!==SECRET)states[n]='eliminated';});
+buildMiniMatrix();renderGrid();updateStats();renderAttemptDots();
+renderQuests();renderFeed();renderVotes();renderBadges();
+
+/* ═══════ TABS ═══════ */
+function switchTab(name){
+  ['game','quests','feed','vote','badges'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('area-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='feed') document.getElementById('tbf').style.display='none';
+}
+
+/* ═══════ ATTEMPTS ═══════ */
+function renderAttemptDots(){
+  const row=document.getElementById('attempts-row');
+  row.innerHTML='<span class="attempts-label">Попытки:</span>';
+  for(let i=0;i<attemptsMax;i++){
+    const d=document.createElement('div');
+    d.className='attempt-dot '+(i<attemptsLeft?'active':'used');
+    d.textContent=i<attemptsLeft?'▶':'×';
+    row.appendChild(d);
+  }
+  document.getElementById('stat-att').textContent=attemptsLeft;
+  document.getElementById('qa-display').textContent=attemptsLeft+' '+pl(attemptsLeft);
+  document.getElementById('btn-check').disabled=attemptsLeft<=0;
+}
+function addAttempts(n){
+  const gained=Math.min(n,7-attemptsLeft);
+  if(gained<=0) return 0;
+  attemptsLeft+=gained;
+  attemptsMax=Math.max(attemptsMax,attemptsLeft);
+  renderAttemptDots();
+  return gained;
+}
+
+/* ═══════ GAME LOGIC ═══════ */
+function buildMiniMatrix(){
+  const mm=document.getElementById('mini-matrix');mm.innerHTML='';
+  for(let i=0;i<1000;i++){
+    const c=document.createElement('div');
+    c.className='mc '+(myAttempts.includes(i)?'my-attempt':states[i]);
+    mm.appendChild(c);
+  }
+}
+function renderGrid(){
+  const list=document.getElementById('combo-list');
+  const search=document.getElementById('search-input').value.trim();
+  let items=[];
+  for(let i=0;i<1000;i++){
+    const code=pad(i);
+    if(search&&!code.includes(search)) continue;
+    if(filterMode==='avail'&&states[i]!=='available') continue;
+    if(filterMode==='elim'&&states[i]==='available') continue;
+    items.push({i,code});
+  }
+  list.innerHTML='';
+  items.slice(0,200).forEach(({i,code})=>{
+    const c=document.createElement('div');
+    c.className='cc '+(myAttempts.includes(i)?'my-attempt':states[i]);
+    c.textContent=code;
+    if(states[i]==='available'&&!myAttempts.includes(i)) c.onclick=()=>fillDigits(code);
+    list.appendChild(c);
+  });
+  if(items.length>200){
+    const m=document.createElement('div');m.className='more-hint';
+    m.textContent='+ ещё '+(items.length-200)+'. Уточни запрос.';list.appendChild(m);
+  }
+}
+function fillDigits(code){
+  document.getElementById('d1').value=code[0];
+  document.getElementById('d2').value=code[1];
+  document.getElementById('d3').value=code[2];
+  switchTab('game');
+}
+function setFilter(f){
+  filterMode=f;
+  ['all','avail','elim'].forEach(x=>document.getElementById('f-'+x).classList.toggle('active',x===f));
+  renderGrid();
+}
+function updateStats(){
+  const elim=states.filter(s=>s==='eliminated').length;
+  document.getElementById('stat-elim').textContent=elim;
+  document.getElementById('stat-left').textContent=1000-elim;
+  document.getElementById('progress-bar').style.width=(elim/10)+'%';
+  document.getElementById('progress-label').textContent=elim+' из 1000 исключено';
+}
+function tryCode(){
+  if(attemptsLeft<=0){showError('Нет попыток! Выполни квест.');return;}
+  const v1=document.getElementById('d1').value,v2=document.getElementById('d2').value,v3=document.getElementById('d3').value;
+  if(!v1||!v2||!v3){showError('Введи все три цифры!');return;}
+  const code=v1+v2+v3,num=parseInt(code);
+  if(states[num]==='eliminated'||myAttempts.includes(num)){showError('Уже исключена!');return;}
+  attemptsLeft--;renderAttemptDots();
+  if(num===SECRET){
+    states[num]='winning';
+    document.getElementById('win-code').textContent=code;
+    document.getElementById('screen-win').classList.add('active');
+    launchConfetti();unlockBadge('detective');buildMiniMatrix();
+  } else {
+    states[num]='eliminated';myAttempts.push(num);
+    updateStats();buildMiniMatrix();renderGrid();
+    document.getElementById('fail-code').textContent=code;
+    document.getElementById('screen-fail').classList.add('active');
+    if(attemptsLeft===0) startTimer();
+    document.getElementById('timer-row').style.display='flex';
+    addFeedEntry({user:'Ты',color:'#009246',init:'Я',action:'проверил код '+code+' — не подошёл',quest:null,time:'Только что',photo:null,lvl:null});
+  }
+}
+function showError(msg){
+  const el=document.getElementById('err-banner');
+  el.textContent=msg;el.style.display='block';
+  ['d1','d2','d3'].forEach(id=>{const inp=document.getElementById(id);inp.classList.add('error-flash');setTimeout(()=>inp.classList.remove('error-flash'),500);});
+  setTimeout(()=>el.style.display='none',2500);
+}
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  let s=23*3600+59*60+59;
+  function tick(){
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+    const str=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    document.getElementById('timer-val').textContent=str;
+    document.getElementById('timer-val2').textContent=str;
+    if(s>0) s--;
+  }
+  tick();timerInterval=setInterval(tick,1000);
+}
+function backToGame(){document.getElementById('screen-fail').classList.remove('active');switchTab('game');}
+function goToQuests(){document.getElementById('screen-fail').classList.remove('active');switchTab('quests');}
+function shareAttempt(){toast('Карточка скопирована! Осталось '+(1000-states.filter(s=>s==='eliminated').length)+' вариантов 🎯');}
+function shareWin(){toast('Карточка победителя скопирована! 🏆');}
+function doInvite(){toast('Ссылка скопирована! +1 попытка когда друг сыграет 🔗');addFeedEntry({user:'Ты',color:'#009246',init:'Я',action:'поделился приглашением',quest:null,time:'Только что',photo:null,lvl:null});}
+
+/* ═══════ QUESTS ═══════ */
+function renderQuests(){
+  renderQL('daily-list',QD.daily);renderQL('ql1',QD.lvl1);renderQL('ql2',QD.lvl2);
+  renderQL('ql3',QD.lvl3);renderQL('ql4',QD.lvl4);renderQL('ql5',QD.lvl5);
+  const total=[...QD.daily,...QD.lvl1,...QD.lvl2,...QD.lvl3,...QD.lvl4,...QD.lvl5];
+  const rem=total.filter(q=>!questsDone.has(q.id)).length;
+  document.getElementById('tbq').textContent=rem;
+  if(rem===0) document.getElementById('tbq').style.display='none';
+}
+function renderQL(cid,quests){
+  const el=document.getElementById(cid);if(!el) return;el.innerHTML='';
+  quests.forEach(q=>{
+    const done=questsDone.has(q.id);
+    const bg=q.lvl===1?'#e8f7ee':q.lvl===2?'#FFF8E1':q.lvl===3?'#fdeaea':q.lvl===4?'#f3e8ff':'#fff3e8';
+    const c=document.createElement('div');
+    c.className='quest-card lvl'+q.lvl+(done?' done':'');
+    c.innerHTML=`<div class="quest-icon" style="background:${bg}">${q.icon}</div><div class="quest-info"><div class="quest-name">${q.name}</div><div class="quest-desc">${q.desc}</div></div><div class="quest-reward">+${q.reward} ${pl(q.reward)}</div>`;
+    if(!done) c.onclick=()=>openQM(q);
+    el.appendChild(c);
+  });
+}
+function openQM(q){
+  activeQuestId=q.id;
+  document.getElementById('qm-icon').textContent=q.icon;
+  document.getElementById('qm-title').textContent=q.name;
+  document.getElementById('qm-sub').textContent=q.desc;
+  document.getElementById('qm-reward-val').textContent='+'+q.reward+' '+pl(q.reward);
+  const up=document.getElementById('qm-upload');
+  const upIcon=document.getElementById('qm-upload-icon');
+  const upText=document.getElementById('qm-upload-text');
+  const btn=document.getElementById('qm-btn');
+  if(q.type==='photo'){up.style.display='block';upIcon.textContent='📷';upText.textContent='Нажми чтобы загрузить фото';btn.textContent='Отправить фото';}
+  else if(q.type==='text'){up.style.display='block';upIcon.textContent='✍️';upText.textContent='Нажми чтобы написать текст';btn.textContent='Отправить текст';}
+  else{up.style.display='none';btn.textContent=q.type==='vote'?'Перейти к голосованию':q.type==='feed'?'Перейти в ленту':'Поделиться / Пригласить';}
+  document.getElementById('quest-modal').classList.add('active');
+}
+function closeQuestModal(){document.getElementById('quest-modal').classList.remove('active');activeQuestId=null;}
+function completeQuest(){
+  const all=[...QD.daily,...QD.lvl1,...QD.lvl2,...QD.lvl3,...QD.lvl4,...QD.lvl5];
+  const q=all.find(x=>x.id===activeQuestId);if(!q) return;
+  closeQuestModal();
+  if(q.type==='vote'){switchTab('vote');return;}
+  if(q.type==='feed'){switchTab('feed');return;}
+  questsDone.add(q.id);
+  const gained=addAttempts(q.reward);
+  if(q.badge) unlockBadge(q.badge);
+  const daily_done=QD.daily.filter(x=>questsDone.has(x.id)).length;
+  if(daily_done>=3) unlockBadge('daily_hero');
+  renderQuests();
+  addFeedEntry({user:'Ты',color:'#009246',init:'Я',action:'выполнил квест',quest:q.name+' '+q.icon,time:'Только что',photo:q.type==='photo'?q.icon:null,lvl:'Уровень '+q.lvl});
+  document.getElementById('tbf').style.display='flex';document.getElementById('tbf').textContent='!';
+  toast('Квест выполнен!'+(gained>0?' +'+gained+' '+pl(gained)+' получено':' Уже максимум попыток')+' 🎉');
+}
+
+/* ═══════ FEED ═══════ */
+function renderFeed(){
+  const list=document.getElementById('feed-list');list.innerHTML='';
+  feedData.forEach((f,i)=>list.appendChild(buildFeedCard(f,i)));
+}
+function addFeedEntry(f){
+  feedData.unshift(f);feedLikes.unshift(0);feedLiked.unshift(false);
+  const list=document.getElementById('feed-list');
+  list.insertBefore(buildFeedCard(f,0),list.firstChild);
+  // re-index existing cards would need full re-render — for demo just re-render
+}
+function buildFeedCard(f,idx){
+  const div=document.createElement('div');div.className='feed-item';
+  let h=`<div class="feed-header"><div class="feed-avatar" style="background:${f.color}">${f.init}</div><div><div class="feed-name">${f.user}</div><div class="feed-time">${f.time}</div></div>${f.lvl?'<div class="feed-lvl-tag">'+f.lvl+'</div>':''}</div>`;
+  h+=`<div class="feed-action">${f.action}${f.quest?':':''}</div>`;
+  if(f.quest) h+=`<div class="feed-quest-badge">${f.quest}</div>`;
+  if(f.photo) h+=`<div class="feed-photo">${f.photo}</div>`;
+  if(feedLikes[idx]>=0&&f.photo){
+    h+=`<div class="feed-actions-row"><button class="feed-action-btn ${feedLiked[idx]?'liked':''}" onclick="toggleLike(${idx},this)">${feedLiked[idx]?'❤️':'🤍'} ${feedLikes[idx]}</button><button class="feed-action-btn" onclick="toast('Ссылка скопирована 🔗')">↗ Поделиться</button></div>`;
+  }
+  div.innerHTML=h;return div;
+}
+function toggleLike(idx){
+  feedLiked[idx]=!feedLiked[idx];
+  feedLikes[idx]+=feedLiked[idx]?1:-1;
+  renderFeed();switchTab('feed');
+}
+
+/* ═══════ VOTES ═══════ */
+function renderVotes(){
+  const list=document.getElementById('vote-list');list.innerHTML='';
+  votesData.forEach(v=>list.appendChild(buildVoteCard(v)));
+}
+function buildVoteCard(v){
+  const total=v.opts.reduce((s,o)=>s+o.v,0);
+  const myVote=votedOn[v.id];
+  const maxV=Math.max(...v.opts.map(o=>o.v));
+  const card=document.createElement('div');card.className='vote-card';
+  card.innerHTML=`<div class="vote-header"><div><div class="vote-title">${v.title}</div><div class="vote-subtitle">${v.sub}</div></div><div class="vote-end">До ${v.ends}</div></div><div class="vote-options" id="vopt-${v.id}"></div>${myVote!==undefined?'<div style="margin-top:9px;font-size:11px;color:var(--green-dark);font-weight:700;text-align:center">✓ Твой голос учтён! +3 попытки получены</div>':''}`;
+  const optsEl=card.querySelector('#vopt-'+v.id);
+  v.opts.forEach((opt,i)=>{
+    const pct=total>0?Math.round(opt.v/total*100):0;
+    const isWinner=opt.v===maxV;
+    const voted=myVote===i;
+    const div=document.createElement('div');
+    div.className='vote-option'+(voted?' voted':'')+(myVote!==undefined?' reveal':'');
+    div.innerHTML=`<div class="vote-option-img">${opt.e}</div><div class="vote-option-info"><div class="vote-option-name">${opt.n}</div><div class="vote-option-sub">${opt.s}</div>${myVote!==undefined?'<div class="vote-bar-wrap"><div class="vote-bar" style="width:'+pct+'%"></div></div><div class="vote-pct">'+pct+'%</div>':''}</div>${isWinner&&myVote!==undefined?'<div class="vote-winner-badge">Лидер</div>':''}`;
+    if(myVote===undefined) div.onclick=()=>castVote(v.id,i);
+    optsEl.appendChild(div);
+  });
+  return card;
+}
+function castVote(vid,optIdx){
+  if(votedOn[vid]!==undefined) return;
+  votedOn[vid]=optIdx;
+  votesData.find(v=>v.id===vid).opts[optIdx].v++;
+  const gained=addAttempts(3);
+  renderVotes();
+  toast('Голос учтён!'+(gained>0?' +'+gained+' '+pl(gained)+' 🗳️':' Уже максимум попыток!'));
+  addFeedEntry({user:'Ты',color:'#009246',init:'Я',action:'проголосовал в опросе',quest:votesData.find(v=>v.id===vid).title,time:'Только что',photo:null,lvl:null});
+}
+
+/* ═══════ BADGES ═══════ */
+function unlockBadge(id){
+  if(unlockedBadges.has(id)) return;
+  unlockedBadges.add(id);renderBadges();
+  const b=BD.find(x=>x.id===id);
+  if(b) toast('Бейдж: '+b.icon+' '+b.name+' разблокирован!');
+}
+function renderBadges(){
+  const grid=document.getElementById('badges-grid');grid.innerHTML='';
+  BD.forEach(b=>{
+    const u=unlockedBadges.has(b.id);
+    const c=document.createElement('div');
+    c.className='badge-card '+(u?'unlocked':'locked');
+    if(u){c.style.borderColor=b.color;c.style.background=b.color+'15';}
+    c.innerHTML=(u?'<div class="badge-stamp" style="background:'+b.color+'">✓</div>':'')+'<span class="badge-emoji">'+b.icon+'</span><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div>';
+    grid.appendChild(c);
+  });
+}
+
+/* ═══════ UTILS ═══════ */
+function toast(msg){
+  const el=document.getElementById('toast-el');el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+function launchConfetti(){
+  const c=document.getElementById('confetti');
+  const cols=['#009246','#CE2B37','#C8A84B','#fff','#006B33','#9B1E27'];
+  for(let i=0;i<100;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.style.cssText='left:'+Math.random()*100+'%;top:-10px;background:'+cols[Math.floor(Math.random()*cols.length)]+';width:'+(4+Math.random()*8)+'px;height:'+(4+Math.random()*8)+'px;animation-duration:'+(1.5+Math.random()*2)+'s;animation-delay:'+(Math.random()*.8)+'s;border-radius:'+(Math.random()>.5?'50%':'2px');
+    c.appendChild(p);setTimeout(()=>p.remove(),4000);
+  }
+}
+['d1','d2','d3'].forEach((id,i)=>{
+  const ids=['d1','d2','d3'],el=document.getElementById(id);
+  el.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'').slice(-1);if(this.value.length===1&&i<2) document.getElementById(ids[i+1]).focus();});
+  el.addEventListener('keydown',function(e){if(e.key==='Backspace'&&this.value===''&&i>0) document.getElementById(ids[i-1]).focus();if(e.key==='Enter') tryCode();});
+});
+
+// FIX #5: dismiss keyboard when tapping outside digit inputs
+document.addEventListener('touchstart', function(e){
+  const digitIds = ['d1','d2','d3'];
+  const isDigit = digitIds.some(id => document.getElementById(id) === e.target);
+  const isBtn = e.target.closest('button');
+  if (!isDigit && !isBtn) {
+    digitIds.forEach(id => document.getElementById(id).blur());
+  }
+}, {passive: true});
+
+// FIX #5b: expose blur function for parent (close game)
+window.blurAllInputs = function() {
+  ['d1','d2','d3'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) { el.blur(); el.disabled = true; setTimeout(()=>el.disabled=false, 100); }
+  });
+};
+</script>
+</body>
+</html>

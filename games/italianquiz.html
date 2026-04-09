@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Итальянский квиз 🍕</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tomato: #D62828;
+    --tomato-dark: #A01E1E;
+    --cheese: #F4A226;
+    --cheese-light: #FFCF67;
+    --dough: #F5E6CC;
+    --dough-dark: #E8CEAA;
+    --basil: #2D6A4F;
+    --basil-light: #52B788;
+    --cream: #FFF8EE;
+    --charcoal: #2B2118;
+    --shadow: rgba(43,33,24,0.18);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--dough);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(214,40,40,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(244,162,38,0.08) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .floating-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .float-emoji { position: absolute; opacity: 0.08; animation: floatAround linear infinite; }
+  @keyframes floatAround {
+    0%   { transform: translateY(110vh) rotate(0deg); }
+    100% { transform: translateY(-10vh) rotate(360deg); }
+  }
+
+  /* SCREENS */
+  .screen {
+    display: none; position: relative; z-index: 1;
+    width: 100%; max-width: 480px; padding: 16px;
+    animation: slideIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .screen.active { display: block; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* TOP NAV */
+  .top-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; padding: 0 4px;
+  }
+  .btn-home {
+    background: var(--cream); border: 2.5px solid rgba(43,33,24,0.12);
+    border-radius: 12px; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1.1rem; transition: all 0.15s;
+    box-shadow: 0 3px 0 var(--dough-dark); flex-shrink: 0;
+  }
+  .btn-home:hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--dough-dark); }
+  .btn-home:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--dough-dark); }
+  .nav-title {
+    font-size: 0.78rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--charcoal); opacity: 0.4;
+  }
+  .nav-spacer { width: 40px; }
+
+  /* CARD */
+  .card {
+    background: var(--cream); border-radius: 28px; padding: 36px 32px;
+    box-shadow: 0 8px 0 var(--dough-dark), 0 16px 40px var(--shadow);
+    border: 3px solid rgba(255,255,255,0.7); position: relative; overflow: hidden;
+  }
+  .card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, var(--tomato), var(--cheese), var(--basil));
+    border-radius: 28px 28px 0 0;
+  }
+  .card-scroll {
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dough-dark) transparent;
+  }
+  .card-scroll::-webkit-scrollbar { width: 4px; }
+  .card-scroll::-webkit-scrollbar-thumb { background: var(--dough-dark); border-radius: 4px; }
+
+  /* START */
+  .pizza-logo { text-align: center; margin-bottom: 8px; }
+  .pizza-icon {
+    font-size: 5rem; display: inline-block;
+    animation: spin3d 6s ease-in-out infinite;
+    filter: drop-shadow(0 6px 12px rgba(214,40,40,0.3));
+  }
+  @keyframes spin3d {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50%       { transform: rotate(5deg) scale(1.05); }
+  }
+  h1.game-title {
+    font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 900;
+    color: var(--tomato); text-align: center; line-height: 1.1; letter-spacing: -0.5px;
+  }
+  h1.game-title span {
+    color: var(--cheese); display: block; font-size: 1.1rem;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase; margin-top: 4px;
+  }
+  .subtitle { text-align: center; color: var(--charcoal); opacity: 0.6; font-size: 0.95rem; margin: 12px 0 28px; font-weight: 600; }
+  .flag-row { display: flex; justify-content: center; gap: 6px; margin: 16px 0 24px; }
+  .flag-stripe { width: 36px; height: 22px; border-radius: 4px; }
+
+  /* BUTTONS */
+  .btn {
+    display: block; width: 100%; padding: 16px 24px; border: none;
+    border-radius: 16px; font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem; font-weight: 800; cursor: pointer;
+    transition: all 0.15s ease; position: relative; overflow: hidden; text-align: center;
+  }
+  .btn:active { transform: translateY(3px); }
+  .btn-primary {
+    background: var(--tomato); color: white; margin-bottom: 12px;
+    box-shadow: 0 5px 0 var(--tomato-dark), 0 8px 20px rgba(214,40,40,0.3);
+  }
+  .btn-primary:hover { background: #E63030; transform: translateY(-2px); box-shadow: 0 7px 0 var(--tomato-dark), 0 12px 24px rgba(214,40,40,0.35); }
+  .btn-secondary {
+    background: var(--cheese); color: var(--charcoal); margin-bottom: 12px;
+    box-shadow: 0 5px 0 #C97F00, 0 8px 20px rgba(244,162,38,0.3);
+  }
+  .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #C97F00, 0 12px 24px rgba(244,162,38,0.35); }
+  .btn-basil {
+    background: var(--basil-light); color: white; margin-bottom: 12px;
+    box-shadow: 0 5px 0 var(--basil), 0 8px 20px rgba(82,183,136,0.3);
+  }
+  .btn-basil:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--basil), 0 12px 24px rgba(82,183,136,0.35); }
+  .btn-outline { background: transparent; color: var(--tomato); border: 2.5px solid var(--tomato); box-shadow: none; }
+  .btn-outline:hover { background: rgba(214,40,40,0.06); }
+
+  /* QUESTION */
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .q-counter { font-size: 0.85rem; font-weight: 800; color: var(--charcoal); opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; }
+  .score-badge { background: var(--tomato); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; }
+  .timer-wrap { margin-bottom: 20px; }
+  .timer-bar-bg { height: 10px; background: rgba(43,33,24,0.1); border-radius: 8px; overflow: hidden; }
+  .timer-bar { height: 100%; border-radius: 8px; transition: width 1s linear, background-color 0.5s; background: var(--basil-light); }
+  .timer-bar.yellow { background: var(--cheese); }
+  .timer-bar.red    { background: var(--tomato); }
+  .timer-secs { text-align: right; font-size: 0.8rem; font-weight: 800; color: var(--charcoal); opacity: 0.5; margin-top: 4px; }
+  .question-category { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: var(--cheese); margin-bottom: 8px; }
+  .question-text { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--charcoal); line-height: 1.4; margin-bottom: 24px; }
+  .answers { display: flex; flex-direction: column; gap: 10px; }
+  .answer-btn {
+    background: white; border: 2.5px solid rgba(43,33,24,0.1); border-radius: 14px;
+    padding: 14px 18px; text-align: left; font-family: 'Nunito', sans-serif;
+    font-size: 0.98rem; font-weight: 700; color: var(--charcoal); cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+  }
+  .answer-btn:hover:not(:disabled) { border-color: var(--cheese); background: #FFFBF2; transform: translateX(4px); }
+  .answer-btn .ans-letter {
+    width: 32px; height: 32px; min-width: 32px; border-radius: 50%;
+    background: var(--dough); display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800; color: var(--charcoal); opacity: 0.6;
+  }
+  .answer-btn.correct { background: #E8F5E9; border-color: var(--basil-light); color: var(--basil); animation: bounceIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  .answer-btn.correct .ans-letter { background: var(--basil-light); color: white; opacity: 1; }
+  .answer-btn.wrong { background: #FDECEA; border-color: var(--tomato); color: var(--tomato-dark); animation: shake 0.4s ease; }
+  .answer-btn.wrong .ans-letter { background: var(--tomato); color: white; opacity: 1; }
+  .answer-btn:disabled { cursor: default; }
+  @keyframes bounceIn { 0%{transform:scale(0.95)} 60%{transform:scale(1.03)} 100%{transform:scale(1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(43,33,24,0.5);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeOv 0.2s ease;
+  }
+  @keyframes fadeOv { from{opacity:0} to{opacity:1} }
+  .modal-box {
+    background: var(--cream); border-radius: 24px; padding: 32px 28px;
+    max-width: 360px; width: 100%;
+    box-shadow: 0 20px 60px rgba(43,33,24,0.3);
+    border: 3px solid rgba(255,255,255,0.7);
+    animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1); text-align: center;
+  }
+  .modal-emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--charcoal); margin-bottom: 8px; }
+  .modal-text { font-size: 0.9rem; color: var(--charcoal); opacity: 0.6; margin-bottom: 24px; font-weight: 600; line-height: 1.5; }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btns .btn { margin: 0; flex: 1; padding: 14px; font-size: 0.95rem; }
+
+  /* FEEDBACK */
+  .feedback-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
+  .feedback-bubble {
+    background: white; border-radius: 24px; padding: 24px 36px; text-align: center;
+    box-shadow: 0 20px 60px rgba(43,33,24,0.25);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1) forwards, popOut 0.3s ease 1.2s forwards;
+    opacity: 0; transform: scale(0.5);
+  }
+  @keyframes popIn { to{opacity:1;transform:scale(1)} }
+  @keyframes popOut { to{opacity:0;transform:scale(0.8) translateY(-20px)} }
+  .feedback-emoji { font-size: 3.5rem; display: block; margin-bottom: 4px; }
+  .feedback-text { font-size: 1.1rem; font-weight: 800; color: var(--charcoal); }
+  .feedback-pts { color: var(--basil); font-size: 1.6rem; font-weight: 900; }
+
+  /* CONFETTI */
+  .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
+  .confetti-piece { position: absolute; width: 10px; height: 10px; border-radius: 2px; top: -20px; animation: confettiFall linear forwards; }
+  @keyframes confettiFall { to{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+  /* FINAL */
+  .final-flag { font-size: 4rem; text-align: center; display: block; margin: 0 auto 12px; animation: flagWave 2s ease-in-out infinite; }
+  @keyframes flagWave { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+  .final-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--charcoal); opacity: 0.55; text-align: center; margin-bottom: 4px; }
+  .final-score { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 900; color: var(--tomato); text-align: center; line-height: 1; margin-bottom: 8px; }
+  .final-rank { text-align: center; font-size: 1.35rem; font-weight: 800; color: var(--charcoal); margin-bottom: 24px; padding: 12px 20px; background: linear-gradient(135deg, #FFF3DC, #FFE8B8); border-radius: 16px; border: 2px solid var(--cheese-light); }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .stat-box { flex: 1; background: var(--dough); border-radius: 14px; padding: 14px 10px; text-align: center; }
+  .stat-num { font-size: 1.6rem; font-weight: 900; color: var(--charcoal); display: block; }
+  .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--charcoal); opacity: 0.5; display: block; margin-top: 2px; }
+
+  /* DOTS */
+  .dots-row { display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(43,33,24,0.12); transition: all 0.3s; }
+  .dot.done-correct { background: var(--basil-light); }
+  .dot.done-wrong   { background: var(--tomato); }
+  .dot.active       { background: var(--cheese); transform: scale(1.4); }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(43,33,24,0.1), transparent); margin: 20px 0; }
+
+  /* LEADERBOARD */
+  .lb-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .lb-trophy { font-size: 2.2rem; }
+  .lb-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--charcoal); }
+  .lb-subtitle { font-size: 0.78rem; font-weight: 700; color: var(--charcoal); opacity: 0.45; letter-spacing: 1.5px; text-transform: uppercase; }
+  .lb-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .lb-tab {
+    flex: 1; padding: 9px; border: 2px solid rgba(43,33,24,0.1);
+    border-radius: 12px; background: transparent;
+    font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
+    color: var(--charcoal); opacity: 0.5; cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .lb-tab.active { background: var(--tomato); color: white; border-color: var(--tomato); opacity: 1; box-shadow: 0 4px 0 var(--tomato-dark); }
+  .lb-empty { text-align: center; padding: 32px 16px; color: var(--charcoal); opacity: 0.4; }
+  .lb-empty-icon { font-size: 3rem; display: block; margin-bottom: 8px; }
+  .lb-empty-text { font-size: 0.9rem; font-weight: 700; }
+  .lb-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .lb-entry {
+    display: flex; align-items: center; gap: 12px;
+    background: white; border-radius: 14px; padding: 12px 16px;
+    border: 2.5px solid rgba(43,33,24,0.06); position: relative; overflow: hidden; transition: transform 0.15s;
+  }
+  .lb-entry.me { border-color: var(--cheese); background: linear-gradient(135deg, #FFFBF2, #FFF3DC); }
+  .lb-entry.me::after { content: 'ВЫ'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.62rem; font-weight: 900; letter-spacing: 1.5px; color: var(--cheese); background: rgba(244,162,38,0.15); padding: 3px 7px; border-radius: 6px; }
+  .lb-rank-badge { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; }
+  .lb-rank-badge.r1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; font-size: 1.2rem; }
+  .lb-rank-badge.r2 { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); color: white; font-size: 1.1rem; }
+  .lb-rank-badge.r3 { background: linear-gradient(135deg, #BCAAA4, #8D6E63); color: white; font-size: 1.1rem; }
+  .lb-rank-badge.rN { background: var(--dough); color: var(--charcoal); opacity: 0.6; font-size: 0.85rem; }
+  .lb-entry.row1 { box-shadow: 0 0 0 2px rgba(255,215,0,0.4), 0 4px 16px rgba(255,165,0,0.15); }
+  .lb-entry.row2 { box-shadow: 0 0 0 2px rgba(189,189,189,0.4); }
+  .lb-entry.row3 { box-shadow: 0 0 0 2px rgba(188,170,164,0.4); }
+  .lb-info { flex: 1; min-width: 0; }
+  .lb-name { font-size: 0.95rem; font-weight: 800; color: var(--charcoal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .lb-meta { font-size: 0.72rem; font-weight: 700; color: var(--charcoal); opacity: 0.45; margin-top: 2px; }
+  .lb-score-col { text-align: right; }
+  .lb-pts { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 900; color: var(--tomato); }
+  .lb-rank-label { font-size: 0.65rem; font-weight: 700; color: var(--charcoal); opacity: 0.4; display: block; }
+
+  /* NAME MODAL */
+  .name-modal-wrap { position: fixed; inset: 0; z-index: 300; background: rgba(43,33,24,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeOv 0.2s ease; }
+  .name-modal { background: var(--cream); border-radius: 24px; padding: 32px 28px; max-width: 360px; width: 100%; box-shadow: 0 20px 60px rgba(43,33,24,0.3); border: 3px solid rgba(255,255,255,0.7); animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1); text-align: center; }
+  .name-modal input { width: 100%; padding: 14px 16px; border: 2.5px solid rgba(43,33,24,0.15); border-radius: 14px; margin: 16px 0; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700; color: var(--charcoal); background: white; outline: none; transition: border-color 0.15s; text-align: center; }
+  .name-modal input:focus { border-color: var(--cheese); }
+
+  @media (max-width: 400px) {
+    .card { padding: 28px 20px; }
+    h1.game-title { font-size: 2rem; }
+    .question-text { font-size: 1.2rem; }
+    .final-score { font-size: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="floating-bg" id="floatingBg"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+<div class="feedback-overlay" id="feedbackOverlay" style="display:none"></div>
+
+<!-- START -->
+<div class="screen active" id="screenStart">
+  <div class="card">
+    <div class="pizza-logo"><span class="pizza-icon">🍕</span></div>
+    <h1 class="game-title">Итальянский квиз<span>Quanto sai sull'Italia?</span></h1>
+    <p class="subtitle">10 вопросов · 15 секунд на каждый</p>
+    <div class="flag-row">
+      <div class="flag-stripe" style="background:#009246"></div>
+      <div class="flag-stripe" style="background:#fff;border:1px solid #ddd"></div>
+      <div class="flag-stripe" style="background:#ce2b37"></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">🍕 Начать игру</button>
+    <button class="btn btn-basil" onclick="showLeaderboard()">🏆 Таблица лидеров</button>
+    <button class="btn btn-secondary" onclick="showScreen('screenHowto')">📜 Как играть</button>
+  </div>
+</div>
+
+<!-- HOWTO -->
+<div class="screen" id="screenHowto">
+  <div class="top-nav">
+    <button class="btn-home" onclick="goHome()">🏠</button>
+    <span class="nav-title">Как играть</span>
+    <div class="nav-spacer"></div>
+  </div>
+  <div class="card">
+    <div style="text-align:center;font-size:2.5rem;margin-bottom:12px">📋</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--charcoal);text-align:center;margin-bottom:20px">Как играть</h2>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:1.4rem">⏱️</span>
+        <div><strong style="display:block;color:var(--charcoal)">15 секунд</strong><span style="font-size:0.88rem;color:var(--charcoal);opacity:0.6">На каждый вопрос — следите за полоской таймера</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:1.4rem">⚡</span>
+        <div><strong style="display:block;color:var(--charcoal)">Скорость = очки</strong><span style="font-size:0.88rem;color:var(--charcoal);opacity:0.6">Чем быстрее отвечаете, тем больше баллов</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:1.4rem">🏆</span>
+        <div><strong style="display:block;color:var(--charcoal)">Максимум 1000 баллов</strong><span style="font-size:0.88rem;color:var(--charcoal);opacity:0.6">Станьте Почётным римлянином!</span></div>
+      </div>
+    </div>
+    <div style="background:var(--dough);border-radius:16px;padding:16px;margin-bottom:24px">
+      <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--charcoal);opacity:0.5;margin-bottom:10px">Звания</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:0.9rem;font-weight:700">
+        <div style="display:flex;justify-content:space-between"><span>0–250</span><span>🧳 Турист</span></div>
+        <div style="display:flex;justify-content:space-between"><span>251–500</span><span>💚 Влюблённый в Италию</span></div>
+        <div style="display:flex;justify-content:space-between"><span>501–750</span><span>🤌 Настоящий итальянец</span></div>
+        <div style="display:flex;justify-content:space-between"><span>751–1000</span><span>🏛️ Почётный римлянин</span></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">Поехали! 🇮🇹</button>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="screenQuestion">
+  <div class="top-nav">
+    <button class="btn-home" onclick="askExit()">🏠</button>
+    <span class="nav-title" id="qCounter">Вопрос 1 / 10</span>
+    <div class="score-badge" style="font-size:0.8rem;padding:6px 12px">⭐ <span id="scoreDisplay">0</span></div>
+  </div>
+  <div class="card">
+    <div class="dots-row" id="dotsRow"></div>
+    <div class="timer-wrap">
+      <div class="timer-bar-bg"><div class="timer-bar" id="timerBar"></div></div>
+      <div class="timer-secs"><span id="timerSecs">15</span>с</div>
+    </div>
+    <div class="question-category" id="questionCategory"></div>
+    <div class="question-text" id="questionText"></div>
+    <div class="answers" id="answersContainer"></div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="screen" id="screenFinal">
+  <div class="top-nav">
+    <button class="btn-home" onclick="goHome()">🏠</button>
+    <span class="nav-title">Результат</span>
+    <div class="nav-spacer"></div>
+  </div>
+  <div class="card card-scroll">
+    <span class="final-flag">🇮🇹</span>
+    <div class="final-title">Ваш результат</div>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-rank" id="finalRank">Турист</div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-num" id="statCorrect">0</span><span class="stat-label">Правильно</span></div>
+      <div class="stat-box"><span class="stat-num" id="statWrong">0</span><span class="stat-label">Неверно</span></div>
+      <div class="stat-box"><span class="stat-num" id="statBest">0</span><span class="stat-label">Лучший ответ</span></div>
+    </div>
+    <div class="dots-row" id="finalDots"></div>
+    <div class="divider"></div>
+    <button class="btn btn-basil" onclick="showLeaderboard()">🏆 Таблица лидеров</button>
+    <button class="btn btn-primary" onclick="shareResult()">📤 Поделиться</button>
+    <button class="btn btn-secondary" onclick="startGame()">🔄 Сыграть ещё</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="screenLeaderboard">
+  <div class="top-nav">
+    <button class="btn-home" onclick="goHome()">🏠</button>
+    <span class="nav-title">Лидерборд</span>
+    <button class="btn-home" onclick="confirmClearLb()" style="font-size:0.9rem">🗑️</button>
+  </div>
+  <div class="card card-scroll">
+    <div class="lb-header">
+      <span class="lb-trophy">🏆</span>
+      <div>
+        <div class="lb-title">Таблица лидеров</div>
+        <div class="lb-subtitle">Лучшие игроки</div>
+      </div>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" id="tabAll"   onclick="switchTab('all')">Все игры</button>
+      <button class="lb-tab"        id="tabTop"   onclick="switchTab('top')">Топ-10</button>
+      <button class="lb-tab"        id="tabToday" onclick="switchTab('today')">Сегодня</button>
+    </div>
+    <div class="lb-list" id="lbList"></div>
+    <button class="btn btn-primary" onclick="startGame()">🍕 Сыграть</button>
+  </div>
+</div>
+
+<!-- MODAL: exit confirm -->
+<div id="exitModal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <span class="modal-emoji">🚪</span>
+    <div class="modal-title">Выйти из игры?</div>
+    <div class="modal-text">Прогресс текущей игры будет потерян. Вы уверены?</div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal('exitModal')">Остаться</button>
+      <button class="btn btn-primary" style="margin:0" onclick="confirmExit()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: clear lb -->
+<div id="clearLbModal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <span class="modal-emoji">🗑️</span>
+    <div class="modal-title">Очистить таблицу?</div>
+    <div class="modal-text">Все результаты будут удалены навсегда.</div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeModal('clearLbModal')">Отмена</button>
+      <button class="btn btn-primary" style="margin:0" onclick="clearLeaderboard()">Очистить</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: name entry -->
+<div id="nameModal" style="display:none" class="name-modal-wrap">
+  <div class="name-modal">
+    <span style="font-size:2.5rem;display:block;margin-bottom:8px">🏅</span>
+    <div class="modal-title">Результат сохранён!</div>
+    <div style="font-size:0.9rem;color:var(--charcoal);opacity:0.6;font-weight:600">Введите имя для таблицы лидеров</div>
+    <input type="text" id="playerNameInput" placeholder="Ваше имя..." maxlength="20" onkeydown="if(event.key==='Enter')saveName()">
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="margin:0;flex:1;padding:13px" onclick="saveName('Аноним')">Аноним</button>
+      <button class="btn btn-primary"  style="margin:0;flex:1;padding:13px" onclick="saveName()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { q: "Из какого города родом пицца Маргарита?", answers: ["Рим", "Неаполь", "Милан"], correct: 1, cat: "🍕 Еда" },
+  { q: "Как называется итальянское мороженое?", answers: ["Джелато", "Сорбет", "Кремо"], correct: 0, cat: "🍦 Еда" },
+  { q: "Кто написал «Тайную вечерю»?", answers: ["Леонардо да Винчи", "Микеланджело", "Рафаэль"], correct: 0, cat: "🎨 Искусство" },
+  { q: "В каком городе находится Колизей?", answers: ["Венеция", "Флоренция", "Рим"], correct: 2, cat: "🏛️ Архитектура" },
+  { q: "Как по-итальянски «спасибо»?", answers: ["Чао", "Бонджорно", "Грацие"], correct: 2, cat: "🗣️ Язык" },
+  { q: "Какой сыр используют в классическом Тирамису?", answers: ["Рикотта", "Маскарпоне", "Моцарелла"], correct: 1, cat: "🍰 Еда" },
+  { q: "Какой город называют «Вечным городом»?", answers: ["Рим", "Венеция", "Флоренция"], correct: 0, cat: "🌆 Города" },
+  { q: "На каком острове родился Наполеон?", answers: ["Сицилия", "Сардиния", "Корсика"], correct: 2, cat: "👑 История" },
+  { q: "Как называется знаменитая башня в Пизе?", answers: ["Башня мира", "Падающая башня", "Башня солнца"], correct: 1, cat: "🏗️ Архитектура" },
+  { q: "Какой итальянский город известен своими каналами?", answers: ["Генуя", "Болонья", "Венеция"], correct: 2, cat: "🚤 Города" },
+  { q: "Как называется кофе с молочной пеной?", answers: ["Эспрессо", "Капучино", "Американо"], correct: 1, cat: "☕ Еда" },
+  { q: "Кто написал «Божественную комедию»?", answers: ["Петрарка", "Боккаччо", "Данте"], correct: 2, cat: "📚 Культура" },
+  { q: "Из какого региона Италии происходит Пармезан?", answers: ["Тоскана", "Ломбардия", "Эмилия-Романья"], correct: 2, cat: "🧀 Еда" },
+  { q: "Как называется итальянский карнавал?", answers: ["Карнавале", "Феста", "Сагра"], correct: 0, cat: "🎭 Традиции" },
+  { q: "Какой итальянский автобренд имеет логотип с лошадью?", answers: ["Lamborghini", "Ferrari", "Alfa Romeo"], correct: 1, cat: "🏎️ Авто" },
+  { q: "Сколько регионов в Италии?", answers: ["15", "20", "25"], correct: 1, cat: "🗺️ География" },
+  { q: "Как называется соус из базилика и кедровых орехов?", answers: ["Маринара", "Аматричана", "Песто"], correct: 2, cat: "🌿 Еда" },
+  { q: "В каком городе проходит знаменитый кинофестиваль?", answers: ["Рим", "Венеция", "Канны"], correct: 1, cat: "🎬 Кино" },
+  { q: "Кто создал фреску «Сотворение Адама»?", answers: ["Рафаэль", "Леонардо", "Микеланджело"], correct: 2, cat: "🎨 Искусство" },
+  { q: "Как по-итальянски «добрый день»?", answers: ["Буонасера", "Буонджорно", "Чао"], correct: 1, cat: "🗣️ Язык" },
+  { q: "Какой первый цвет флага Италии (слева)?", answers: ["Белый", "Красный", "Зелёный"], correct: 2, cat: "🇮🇹 Флаг" },
+  { q: "Какое итальянское вино родом из Тосканы?", answers: ["Просекко", "Кьянти", "Бароло"], correct: 1, cat: "🍷 Еда" },
+  { q: "Как называется итальянская паста в форме трубочек?", answers: ["Ригатони", "Тальятелле", "Конкильи"], correct: 0, cat: "🍝 Еда" },
+  { q: "Кто написал трактат «Принц»?", answers: ["Данте", "Макиавелли", "Петрарка"], correct: 1, cat: "📚 Культура" },
+  { q: "Какое море омывает западный берег Италии?", answers: ["Адриатическое", "Тирренское", "Ионическое"], correct: 1, cat: "🌊 География" },
+];
+
+const RANKS = [
+  { min:0,   max:250,  label:'🧳 Турист' },
+  { min:251, max:500,  label:'💚 Влюблённый в Италию' },
+  { min:501, max:750,  label:'🤌 Настоящий итальянец' },
+  { min:751, max:1000, label:'🏛️ Почётный римлянин' },
+];
+
+const LB_KEY = 'italianQuizLB_v3';
+let gameQuestions=[], currentQ=0, score=0, correctCount=0, wrongCount=0, bestPts=0;
+let answerHistory=[], timerInterval=null, timeLeft=15, answered=false;
+let pendingScore=0, lbTab='all', lastSavedDate=null;
+
+/* FLOATING BG */
+(function(){
+  const emojis=['🍕','🍝','🍷','🏛️','🫒','🍅','🧀','🌿','⭐'];
+  const bg=document.getElementById('floatingBg');
+  for(let i=0;i<14;i++){
+    const el=document.createElement('div');
+    el.className='float-emoji';
+    el.textContent=emojis[i%emojis.length];
+    el.style.left=Math.random()*100+'vw';
+    el.style.animationDuration=(12+Math.random()*18)+'s';
+    el.style.animationDelay=(Math.random()*20)+'s';
+    el.style.fontSize=(1.2+Math.random()*2)+'rem';
+    bg.appendChild(el);
+  }
+})();
+
+/* NAVIGATION */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const sc=document.getElementById(id);
+  sc.classList.remove('active'); void sc.offsetWidth; sc.classList.add('active');
+}
+function goHome(){ showScreen('screenStart'); }
+
+/* EXIT MODAL */
+function askExit(){ document.getElementById('exitModal').style.display='flex'; }
+function confirmExit(){ clearInterval(timerInterval); closeModal('exitModal'); goHome(); }
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+/* START */
+function startGame(){
+  const shuffled=[...QUESTIONS].sort(()=>Math.random()-0.5).slice(0,10);
+  gameQuestions=shuffled;
+  currentQ=0; score=0; correctCount=0; wrongCount=0; bestPts=0; answerHistory=[];
+  document.getElementById('scoreDisplay').textContent='0';
+  buildDots(); showQuestion(); showScreen('screenQuestion');
+}
+
+/* DOTS */
+function buildDots(){
+  const row=document.getElementById('dotsRow'); row.innerHTML='';
+  for(let i=0;i<10;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' active':''); d.id='dot_'+i; row.appendChild(d);
+  }
+}
+function updateDots(idx,result){
+  const d=document.getElementById('dot_'+idx);
+  if(d) d.className='dot '+(result?'done-correct':'done-wrong');
+  if(idx+1<10){ const n=document.getElementById('dot_'+(idx+1)); if(n) n.className='dot active'; }
+}
+
+/* QUESTION */
+function showQuestion(){
+  answered=false;
+  const q=gameQuestions[currentQ];
+  document.getElementById('qCounter').textContent=`Вопрос ${currentQ+1} / 10`;
+  document.getElementById('questionCategory').textContent=q.cat;
+  document.getElementById('questionText').textContent=q.q;
+  const c=document.getElementById('answersContainer'); c.innerHTML='';
+  ['А','Б','В'].forEach((l,i)=>{
+    const btn=document.createElement('button');
+    btn.className='answer-btn';
+    btn.innerHTML=`<span class="ans-letter">${l}</span><span>${q.answers[i]}</span>`;
+    btn.onclick=()=>selectAnswer(i);
+    c.appendChild(btn);
+  });
+  startTimer();
+}
+
+/* TIMER */
+function startTimer(){
+  clearInterval(timerInterval); timeLeft=15; updateTimerUI();
+  timerInterval=setInterval(()=>{ timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerInterval); if(!answered) timeUp(); } },1000);
+}
+function updateTimerUI(){
+  const bar=document.getElementById('timerBar');
+  bar.style.width=(timeLeft/15*100)+'%';
+  document.getElementById('timerSecs').textContent=timeLeft;
+  bar.className='timer-bar';
+  if(timeLeft<=5) bar.classList.add('red');
+  else if(timeLeft<=10) bar.classList.add('yellow');
+}
+function timeUp(){
+  answered=true;
+  const q=gameQuestions[currentQ];
+  document.querySelectorAll('.answer-btn').forEach((b,i)=>{ b.disabled=true; if(i===q.correct) b.classList.add('correct'); });
+  answerHistory.push(false); updateDots(currentQ,false);
+  showFeedback(false,0); setTimeout(()=>nextQuestion(),1500);
+}
+
+/* ANSWER */
+function selectAnswer(idx){
+  if(answered) return; answered=true; clearInterval(timerInterval);
+  const q=gameQuestions[currentQ];
+  const ok=idx===q.correct;
+  const pts=ok?Math.round(100*(timeLeft/15)):0;
+  document.querySelectorAll('.answer-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.correct) b.classList.add('correct');
+    else if(i===idx&&!ok) b.classList.add('wrong');
+  });
+  if(ok){ score+=pts; correctCount++; if(pts>bestPts) bestPts=pts; document.getElementById('scoreDisplay').textContent=score; showConfetti(); }
+  else wrongCount++;
+  answerHistory.push(ok); updateDots(currentQ,ok);
+  showFeedback(ok,pts); setTimeout(()=>nextQuestion(),1600);
+}
+
+/* FEEDBACK */
+function showFeedback(ok,pts){
+  const ov=document.getElementById('feedbackOverlay'); ov.style.display='flex';
+  const ce=['🎉','🤌','✨','🏆','🍕'],we=['😅','🤦','🍕💨','😩','🫠'];
+  const em=ok?ce[Math.floor(Math.random()*ce.length)]:we[Math.floor(Math.random()*we.length)];
+  ov.innerHTML=`<div class="feedback-bubble"><span class="feedback-emoji">${em}</span><div class="feedback-text">${ok?'Верно!':'Неверно!'}</div>${ok?`<div class="feedback-pts">+${pts}</div>`:''}</div>`;
+  setTimeout(()=>{ ov.style.display='none'; },1600);
+}
+
+/* CONFETTI */
+function showConfetti(){
+  const c=document.getElementById('confettiContainer');
+  const cols=['#D62828','#F4A226','#2D6A4F','#52B788','#FFCF67','#009246'];
+  for(let i=0;i<30;i++){
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.left=(10+Math.random()*80)+'vw';
+    p.style.background=cols[Math.floor(Math.random()*cols.length)];
+    p.style.width=(6+Math.random()*8)+'px'; p.style.height=(6+Math.random()*8)+'px';
+    p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+    p.style.animationDuration=(0.8+Math.random()*1.2)+'s';
+    p.style.animationDelay=(Math.random()*0.4)+'s';
+    c.appendChild(p); setTimeout(()=>p.remove(),2000);
+  }
+}
+
+/* NEXT */
+function nextQuestion(){ currentQ++; if(currentQ>=10) showFinalScreen(); else showQuestion(); }
+
+/* FINAL */
+function showFinalScreen(){
+  clearInterval(timerInterval);
+  const rank=RANKS.find(r=>score>=r.min&&score<=r.max)||RANKS[RANKS.length-1];
+  document.getElementById('finalScore').textContent=score;
+  document.getElementById('finalRank').textContent=rank.label;
+  document.getElementById('statCorrect').textContent=correctCount;
+  document.getElementById('statWrong').textContent=wrongCount;
+  document.getElementById('statBest').textContent=bestPts;
+  const fd=document.getElementById('finalDots'); fd.innerHTML='';
+  answerHistory.forEach(ok=>{ const d=document.createElement('div'); d.className='dot '+(ok?'done-correct':'done-wrong'); fd.appendChild(d); });
+  showScreen('screenFinal');
+  if(correctCount>=5) showConfetti();
+  if(correctCount>=8) setTimeout(showConfetti,500);
+  pendingScore=score;
+  setTimeout(()=>{ document.getElementById('playerNameInput').value=''; document.getElementById('nameModal').style.display='flex'; document.getElementById('playerNameInput').focus(); },900);
+}
+
+/* LEADERBOARD DATA */
+function getLbData(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch{ return []; } }
+function saveLbData(d){ try{ localStorage.setItem(LB_KEY,JSON.stringify(d)); }catch{} }
+
+function addEntry(name,pts){
+  const data=getLbData();
+  const rank=RANKS.find(r=>pts>=r.min&&pts<=r.max)||RANKS[RANKS.length-1];
+  const entry={ name:name.trim()||'Аноним', score:pts, rank:rank.label, correct:correctCount, date:Date.now() };
+  lastSavedDate=entry.date;
+  data.push(entry);
+  data.sort((a,b)=>b.score-a.score);
+  saveLbData(data.slice(0,100));
+}
+
+function saveName(forceName){
+  const name=forceName||document.getElementById('playerNameInput').value.trim()||'Аноним';
+  addEntry(name,pendingScore);
+  document.getElementById('nameModal').style.display='none';
+}
+
+/* SHOW LB */
+function showLeaderboard(tab){
+  lbTab=tab||'all'; updateTabUI(); renderLb(); showScreen('screenLeaderboard');
+}
+function switchTab(tab){ lbTab=tab; updateTabUI(); renderLb(); }
+function updateTabUI(){
+  ['all','top','today'].forEach(t=>{
+    const el=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el) el.className='lb-tab'+(t===lbTab?' active':'');
+  });
+}
+
+function renderLb(){
+  const container=document.getElementById('lbList');
+  let data=getLbData();
+  if(lbTab==='top') data=data.slice(0,10);
+  else if(lbTab==='today'){ const t=new Date(); t.setHours(0,0,0,0); data=data.filter(e=>e.date>=t.getTime()); }
+
+  if(data.length===0){
+    container.innerHTML=`<div class="lb-empty"><span class="lb-empty-icon">🍕</span><div class="lb-empty-text">Пока никто не играл.<br>Будьте первым!</div></div>`;
+    return;
+  }
+  container.innerHTML='';
+  data.forEach((entry,i)=>{
+    const rank=i+1;
+    const isMe=lastSavedDate&&entry.date===lastSavedDate;
+    const bc=rank===1?'r1':rank===2?'r2':rank===3?'r3':'rN';
+    const rc=rank===1?'row1':rank===2?'row2':rank===3?'row3':'';
+    const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    const dateStr=new Date(entry.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+    const rankShort=entry.rank.replace(/^[^\s]+\s/,'');
+    const el=document.createElement('div');
+    el.className=`lb-entry ${rc}${isMe?' me':''}`;
+    el.innerHTML=`
+      <div class="lb-rank-badge ${bc}">${medal}</div>
+      <div class="lb-info">
+        <div class="lb-name">${esc(entry.name)}</div>
+        <div class="lb-meta">✅ ${entry.correct}/10 · ${dateStr}</div>
+      </div>
+      <div class="lb-score-col">
+        <div class="lb-pts">${entry.score}</div>
+        <span class="lb-rank-label">${rankShort}</span>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function confirmClearLb(){ document.getElementById('clearLbModal').style.display='flex'; }
+function clearLeaderboard(){ saveLbData([]); lastSavedDate=null; closeModal('clearLbModal'); renderLb(); }
+
+/* SHARE */
+function shareResult(){
+  const rankTxt=document.getElementById('finalRank').textContent;
+  const text=`🇮🇹 Итальянский квиз!\n\nМой результат: ${score} баллов\n${rankTxt}\n✅ ${correctCount}/10 правильных ответов\n\nПопробуй побить мой счёт! 🍕`;
+  if(navigator.share) navigator.share({title:'Итальянский квиз',text}).catch(()=>copyText(text));
+  else copyText(text);
+}
+function copyText(text){
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>alert('📋 Скопировано! Вставьте в соцсеть 🇮🇹'));
+  else{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('📋 Скопировано!'); }
+}
+</script>
+</body>
+</html>

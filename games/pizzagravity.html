@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pizza Gravity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  :root {
+    --tomato: #C8371A;
+    --tomato-dark: #9E2610;
+    --tomato-light: #E8502E;
+    --mozzarella: #FFF8E7;
+    --crust: #D4894A;
+    --crust-dark: #B56A2E;
+    --basil: #2D6A4F;
+    --basil-light: #52B788;
+    --gold: #F4A320;
+    --cheese: #FFCF6B;
+    --sauce: #A83220;
+    --cream: #FDF6EC;
+    --shadow: rgba(80, 20, 0, 0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--tomato-dark);
+    font-family: 'Nunito', sans-serif;
+    touch-action: none;
+    user-select: none;
+  }
+
+  #app {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── BACKGROUND PATTERN ── */
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(244,163,32,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(200,55,26,0.3) 0%, transparent 50%),
+      var(--tomato-dark);
+  }
+  .bg-pattern::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 24px,
+      rgba(255,255,255,0.03) 24px, rgba(255,255,255,0.03) 25px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent, transparent 24px,
+      rgba(255,255,255,0.03) 24px, rgba(255,255,255,0.03) 25px
+    );
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 10;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); }
+
+  /* ── START SCREEN ── */
+  #screen-start {
+    gap: 0;
+  }
+
+  .logo-block {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .pizza-logo-svg {
+    width: 130px; height: 130px;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-12px) rotate(3deg); }
+  }
+
+  .game-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 10vw, 56px);
+    font-weight: 900;
+    color: var(--cheese);
+    letter-spacing: -1px;
+    text-shadow: 0 3px 0 var(--crust-dark), 0 6px 20px rgba(0,0,0,0.4);
+    line-height: 1;
+    margin-top: 12px;
+  }
+
+  .game-subtitle {
+    font-size: clamp(13px, 3.5vw, 16px);
+    color: rgba(255,248,231,0.8);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+    text-align: center;
+    max-width: 240px;
+    line-height: 1.4;
+  }
+
+  .best-score-badge {
+    background: rgba(255,207,107,0.15);
+    border: 1.5px solid rgba(255,207,107,0.4);
+    border-radius: 30px;
+    padding: 6px 18px;
+    color: var(--cheese);
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 16px;
+    letter-spacing: 0.3px;
+  }
+  .best-score-badge.no-score { display: none; }
+
+  .btn-play {
+    margin-top: 32px;
+    background: linear-gradient(135deg, var(--tomato-light) 0%, var(--tomato) 100%);
+    color: var(--mozzarella);
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(18px, 5vw, 22px);
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 18px 56px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--tomato-dark), 0 12px 30px rgba(0,0,0,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-play::before {
+    content: '';
+    position: absolute; top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+  .btn-play:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--tomato-dark), 0 6px 15px rgba(0,0,0,0.3); }
+
+  .deco-text {
+    margin-top: 28px;
+    color: rgba(255,248,231,0.3);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ── GAME SCREEN ── */
+  #screen-game {
+    padding: 0;
+    justify-content: flex-start;
+  }
+
+  /* game header — defined in difficulty section below */
+
+  .timer-display {
+    background: rgba(255,248,231,0.12);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,248,231,0.2);
+    border-radius: 40px;
+    padding: 8px 28px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .timer-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: rgba(255,248,231,0.5); text-transform: uppercase; }
+  .timer-value { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--cheese); line-height: 1; letter-spacing: -1px; }
+
+  .game-arena {
+    flex: 1; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  /* ── BOX ── */
+  .pizza-box-wrap {
+    position: relative;
+    width: min(320px, 88vw);
+    aspect-ratio: 1;
+  }
+
+  .box-shadow-el {
+    position: absolute;
+    bottom: -20px; left: 50%; transform: translateX(-50%);
+    width: 85%; height: 30px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(8px);
+  }
+
+  .pizza-box {
+    width: 100%; height: 100%;
+    position: relative;
+    border-radius: 18px;
+    transition: transform 0.1s ease;
+  }
+
+  /* Box exterior */
+  .box-exterior {
+    position: absolute; inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #C47830 0%, #A05C22 50%, #8B4A18 100%);
+    border: 3px solid #7A3A10;
+    box-shadow: inset 0 4px 12px rgba(255,180,80,0.2), inset 0 -4px 12px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .box-exterior::before {
+    content: '';
+    position: absolute; inset: 6px;
+    border: 1.5px dashed rgba(255,200,100,0.3);
+    border-radius: 12px;
+  }
+
+  /* Box label */
+  .box-brand {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 5;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .box-brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,220,120,0.7);
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+
+  /* Inner box floor */
+  .box-interior {
+    position: absolute;
+    inset: 14px;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #F5E8C0 0%, #EDD89A 50%, #E8CC80 100%);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  .box-interior::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      90deg, transparent, transparent 18px,
+      rgba(180,130,60,0.12) 18px, rgba(180,130,60,0.12) 19px
+    ),
+    repeating-linear-gradient(
+      0deg, transparent, transparent 18px,
+      rgba(180,130,60,0.12) 18px, rgba(180,130,60,0.12) 19px
+    );
+  }
+
+  /* Danger zones */
+  .danger-zone {
+    position: absolute;
+    top: 14px; bottom: 14px;
+    width: 22px;
+    background: linear-gradient(to right, rgba(200,55,26,0.0), rgba(200,55,26,0.25));
+    z-index: 6;
+    pointer-events: none;
+  }
+  .danger-zone.left { left: 14px; transform: scaleX(-1); }
+  .danger-zone.right { right: 14px; }
+
+  /* ── PIZZA ── */
+  .pizza-container {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 62%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    cursor: grab;
+    will-change: transform;
+  }
+  .pizza-container:active { cursor: grabbing; }
+
+  .pizza-svg {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    pointer-events: none;
+  }
+
+  /* ── COUNTDOWN ── */
+  .countdown-overlay {
+    position: absolute; inset: 0;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(158, 38, 16, 0.65);
+    backdrop-filter: blur(4px);
+    border-radius: 18px;
+  }
+  .countdown-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 100px;
+    font-weight: 900;
+    color: var(--cheese);
+    text-shadow: 0 4px 0 var(--crust-dark), 0 8px 40px rgba(0,0,0,0.5);
+    animation: countPop 0.9s ease-out;
+  }
+  @keyframes countPop {
+    0% { transform: scale(1.8); opacity: 0; }
+    40% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .countdown-go {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--basil-light);
+    text-shadow: 0 4px 0 var(--basil), 0 8px 40px rgba(0,0,0,0.5);
+    animation: goPop 0.5s ease-out;
+  }
+  @keyframes goPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Hint text */
+  .hint-text {
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom, 16px) + 24px);
+    color: rgba(255,248,231,0.45);
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    text-align: center;
+    animation: hintFade 3s forwards;
+    z-index: 20;
+  }
+  @keyframes hintFade {
+    0% { opacity: 0; } 10% { opacity: 1; }
+    70% { opacity: 1; } 100% { opacity: 0; }
+  }
+
+  /* ── GAMEOVER SCREEN ── */
+  #screen-gameover {
+    gap: 0;
+  }
+
+  .fail-emoji {
+    font-size: 72px;
+    line-height: 1;
+    animation: wobble 0.5s ease;
+    margin-bottom: 8px;
+  }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(-15deg) scale(1.1); }
+    40% { transform: rotate(12deg) scale(1.05); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(5deg); }
+  }
+
+  .fail-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(30px, 8vw, 44px);
+    font-weight: 900;
+    color: var(--cheese);
+    text-shadow: 0 3px 0 var(--crust-dark);
+    margin-bottom: 4px;
+  }
+
+  .result-card {
+    background: rgba(255,248,231,0.1);
+    border: 1.5px solid rgba(255,248,231,0.2);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 22px 40px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .result-label { font-size: 11px; font-weight: 800; letter-spacing: 2.5px; color: rgba(255,248,231,0.5); text-transform: uppercase; margin-bottom: 6px; }
+  .result-value { font-family: 'Playfair Display', serif; font-size: clamp(48px, 13vw, 68px); font-weight: 700; color: var(--cheese); line-height: 1; letter-spacing: -2px; }
+  .result-unit { font-size: 20px; font-weight: 700; color: rgba(255,207,107,0.7); margin-left: 4px; }
+
+  .best-label {
+    font-size: 12px; font-weight: 800; color: var(--basil-light);
+    letter-spacing: 1px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .best-label.show { opacity: 1; }
+
+  .btn-restart {
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--tomato-light), var(--tomato));
+    color: var(--mozzarella);
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(17px, 4.5vw, 20px);
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    padding: 16px 52px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 var(--tomato-dark), 0 12px 28px rgba(0,0,0,0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-restart:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--tomato-dark); }
+
+  .btn-share {
+    margin-top: 14px;
+    background: transparent;
+    color: rgba(255,248,231,0.65);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px; font-weight: 700;
+    border: 1.5px solid rgba(255,248,231,0.25);
+    border-radius: 50px;
+    padding: 12px 36px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-share:active { background: rgba(255,248,231,0.1); color: var(--mozzarella); }
+
+  /* ── SHAKE ANIMATION ── */
+  @keyframes shakeBox {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    15% { transform: translateX(-8px) rotate(-2deg); }
+    30% { transform: translateX(8px) rotate(2deg); }
+    45% { transform: translateX(-6px) rotate(-1.5deg); }
+    60% { transform: translateX(6px) rotate(1.5deg); }
+    75% { transform: translateX(-3px) rotate(-1deg); }
+    90% { transform: translateX(3px) rotate(1deg); }
+  }
+  .box-shake { animation: shakeBox 0.5s ease; }
+
+  @keyframes pizzaFly {
+    0% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--fly-x, 120px)), -50%) rotate(var(--fly-rot, 30deg)) scale(0.6); }
+  }
+  .pizza-fly { animation: pizzaFly 0.5s ease-in forwards; }
+
+  /* difficulty indicator */
+  .game-header {
+    width: 100%;
+    display: flex; justify-content: center; align-items: center;
+    gap: 12px;
+    padding: calc(env(safe-area-inset-top, 16px) + 12px) 24px 12px;
+    position: relative; z-index: 20;
+  }
+
+  .level-display {
+    background: rgba(255,248,231,0.12);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,248,231,0.2);
+    border-radius: 40px;
+    padding: 8px 22px;
+    display: flex; flex-direction: column; align-items: center;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .level-display.lvl1 { border-color: rgba(82,183,136,0.5); }
+  .level-display.lvl2 { border-color: rgba(255,207,107,0.5); }
+  .level-display.lvl3 { border-color: rgba(244,163,32,0.6); }
+  .level-display.lvl4 { border-color: rgba(232,80,46,0.6); }
+  .level-display.lvl5 { border-color: rgba(200,55,26,0.9); background: rgba(200,55,26,0.2); }
+
+  .level-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: rgba(255,248,231,0.5); text-transform: uppercase; }
+  .level-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--cheese); line-height: 1; letter-spacing: -1px;
+    transition: color 0.3s;
+  }
+  .level-display.lvl5 .level-value { color: #FF7043; }
+
+  /* Level up banner */
+  .levelup-banner {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+    z-index: 60;
+    background: linear-gradient(135deg, var(--tomato) 0%, var(--tomato-dark) 100%);
+    border: 2px solid var(--cheese);
+    border-radius: 20px;
+    padding: 16px 36px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .levelup-banner.show {
+    animation: lvlupPop 1.4s ease forwards;
+  }
+  @keyframes lvlupPop {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    30%  { transform: translate(-50%, -50%) scale(1.0); }
+    70%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  }
+  .levelup-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; font-weight: 900;
+    color: var(--cheese);
+    text-shadow: 0 2px 0 var(--crust-dark);
+    line-height: 1;
+  }
+  .levelup-text {
+    font-size: 12px; font-weight: 800;
+    color: rgba(255,248,231,0.7);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .diff-dot { display: none; } /* hidden — replaced by level display */
+
+  /* ── PARTICLES ── */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    border-radius: 50%;
+    animation: particleFly var(--dur, 0.8s) ease-out forwards;
+  }
+  @keyframes particleFly {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx, 40px), var(--ty, -80px)) scale(0); opacity: 0; }
+  }
+
+  /* ── NAME INPUT (after game over) ── */
+  .name-input-wrap {
+    display: flex; gap: 8px; align-items: center;
+    margin-top: 12px; width: 100%; max-width: 300px;
+  }
+  .name-input {
+    flex: 1;
+    background: rgba(255,248,231,0.12);
+    border: 1.5px solid rgba(255,248,231,0.3);
+    border-radius: 30px;
+    padding: 11px 18px;
+    color: var(--mozzarella);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px; font-weight: 700;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .name-input::placeholder { color: rgba(255,248,231,0.35); }
+  .name-input:focus { border-color: rgba(255,207,107,0.6); background: rgba(255,248,231,0.18); }
+  .btn-save-name {
+    background: var(--gold);
+    border: none; border-radius: 30px;
+    padding: 11px 18px;
+    color: var(--tomato-dark);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 3px 0 var(--crust-dark);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-save-name:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--crust-dark); }
+
+  /* ── LEADERBOARD SCREEN ── */
+  #screen-leaderboard {
+    padding: calc(env(safe-area-inset-top, 16px) + 12px) 20px calc(env(safe-area-inset-bottom, 16px) + 12px);
+    justify-content: flex-start;
+    gap: 0;
+  }
+  .lb-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; margin-bottom: 18px;
+  }
+  .lb-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 900;
+    color: var(--cheese);
+    text-shadow: 0 2px 0 var(--crust-dark);
+  }
+  .btn-lb-close {
+    background: rgba(255,248,231,0.12);
+    border: 1.5px solid rgba(255,248,231,0.2);
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    color: var(--mozzarella);
+    font-size: 18px; font-weight: 700;
+    cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lb-list {
+    width: 100%; flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .lb-row {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,248,231,0.08);
+    border: 1px solid rgba(255,248,231,0.12);
+    border-radius: 14px;
+    padding: 12px 16px;
+    transition: background 0.2s;
+  }
+  .lb-row.highlight {
+    background: rgba(255,207,107,0.18);
+    border-color: rgba(255,207,107,0.4);
+  }
+  .lb-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700;
+    color: rgba(255,248,231,0.4);
+    width: 28px; text-align: center; flex-shrink: 0;
+  }
+  .lb-row:nth-child(1) .lb-rank { color: #FFD700; }
+  .lb-row:nth-child(2) .lb-rank { color: #C0C0C0; }
+  .lb-row:nth-child(3) .lb-rank { color: #CD7F32; }
+  .lb-medal { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .lb-name {
+    flex: 1;
+    font-size: 15px; font-weight: 700;
+    color: var(--mozzarella);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lb-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--cheese);
+    white-space: nowrap;
+  }
+  .lb-score span { font-size: 11px; color: rgba(255,207,107,0.6); font-family: 'Nunito', sans-serif; }
+  .lb-empty {
+    text-align: center; color: rgba(255,248,231,0.35);
+    font-size: 14px; padding: 40px 0;
+  }
+
+  /* btn leaderboard on start screen */
+  .btn-leaderboard {
+    margin-top: 14px;
+    background: transparent;
+    border: 1.5px solid rgba(255,248,231,0.25);
+    border-radius: 50px;
+    padding: 10px 28px;
+    color: rgba(255,248,231,0.6);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.5px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-leaderboard:active { background: rgba(255,248,231,0.1); color: var(--mozzarella); }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bg-pattern"></div>
+
+  <!-- START SCREEN -->
+  <div class="screen" id="screen-start">
+    <div class="logo-block">
+      <!-- Pizza SVG logo -->
+      <svg class="pizza-logo-svg" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Crust -->
+        <circle cx="65" cy="65" r="60" fill="#C47830" stroke="#8B4A18" stroke-width="3"/>
+        <!-- Sauce -->
+        <circle cx="65" cy="65" r="52" fill="#A83220"/>
+        <!-- Cheese -->
+        <circle cx="65" cy="65" r="46" fill="#FFCF6B"/>
+        <!-- Cheese blobs -->
+        <ellipse cx="65" cy="55" rx="22" ry="14" fill="#FFE080"/>
+        <ellipse cx="50" cy="72" rx="14" ry="10" fill="#FFE080"/>
+        <ellipse cx="80" cy="74" rx="13" ry="9" fill="#FFE080"/>
+        <!-- Pepperoni -->
+        <circle cx="65" cy="50" r="7" fill="#8B2020"/>
+        <circle cx="65" cy="50" r="5.5" fill="#B03030"/>
+        <circle cx="50" cy="68" r="7" fill="#8B2020"/>
+        <circle cx="50" cy="68" r="5.5" fill="#B03030"/>
+        <circle cx="80" cy="68" r="7" fill="#8B2020"/>
+        <circle cx="80" cy="68" r="5.5" fill="#B03030"/>
+        <circle cx="65" cy="82" r="7" fill="#8B2020"/>
+        <circle cx="65" cy="82" r="5.5" fill="#B03030"/>
+        <!-- Basil leaves -->
+        <ellipse cx="56" cy="58" rx="5" ry="3" fill="#2D6A4F" transform="rotate(-30 56 58)"/>
+        <ellipse cx="74" cy="78" rx="5" ry="3" fill="#2D6A4F" transform="rotate(20 74 78)"/>
+        <!-- Shine -->
+        <ellipse cx="42" cy="38" rx="10" ry="6" fill="rgba(255,255,255,0.15)" transform="rotate(-25 42 38)"/>
+      </svg>
+      <div class="game-title">Pizza Gravity</div>
+      <div class="game-subtitle">Удержи пиццу в коробке как можно дольше</div>
+      <div class="best-score-badge no-score" id="best-badge">🏆 Рекорд: <span id="best-display">0</span> сек</div>
+    </div>
+    <button class="btn-play" id="btn-play">🍕 Играть</button>
+    <button class="btn-leaderboard" id="btn-lb-open">🏆 Лидерборд</button>
+    <div class="deco-text">Сделано с любовью и сыром</div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen hidden" id="screen-game">
+    <div class="game-header">
+      <div class="timer-display">
+        <div class="timer-label">Время</div>
+        <div class="timer-value" id="timer-value">0.0</div>
+      </div>
+      <div class="level-display" id="level-display">
+        <div class="level-label">Уровень</div>
+        <div class="level-value" id="level-value">1</div>
+      </div>
+    </div>
+
+    <div class="game-arena">
+      <div class="pizza-box-wrap" id="box-wrap">
+        <div class="box-shadow-el"></div>
+        <div class="pizza-box" id="pizza-box">
+          <div class="box-exterior"></div>
+          <div class="box-brand">
+            <span class="box-brand-name">La Pizza</span>
+          </div>
+          <div class="box-interior" id="box-interior"></div>
+          <div class="danger-zone left"></div>
+          <div class="danger-zone right"></div>
+
+          <!-- Pizza element -->
+          <div class="pizza-container" id="pizza-container">
+            <svg class="pizza-svg" id="pizza-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Crust -->
+              <circle cx="80" cy="80" r="74" fill="#C47830" stroke="#8B4A18" stroke-width="3"/>
+              <!-- Sauce -->
+              <circle cx="80" cy="80" r="66" fill="#A83220"/>
+              <!-- Cheese base -->
+              <circle cx="80" cy="80" r="59" fill="#FFCF6B"/>
+              <!-- Cheese highlights -->
+              <ellipse cx="80" cy="68" rx="28" ry="18" fill="#FFE085"/>
+              <ellipse cx="60" cy="88" rx="18" ry="12" fill="#FFE085"/>
+              <ellipse cx="100" cy="90" rx="16" ry="11" fill="#FFE085"/>
+              <ellipse cx="80" cy="100" rx="20" ry="12" fill="#FFE085"/>
+              <!-- Pepperoni 1 -->
+              <circle cx="80" cy="60" r="9" fill="#7A1A1A"/>
+              <circle cx="80" cy="60" r="7.5" fill="#A83030"/>
+              <circle cx="78" cy="58" r="2" fill="rgba(255,255,255,0.15)"/>
+              <!-- Pepperoni 2 -->
+              <circle cx="60" cy="82" r="9" fill="#7A1A1A"/>
+              <circle cx="60" cy="82" r="7.5" fill="#A83030"/>
+              <circle cx="58" cy="80" r="2" fill="rgba(255,255,255,0.15)"/>
+              <!-- Pepperoni 3 -->
+              <circle cx="100" cy="82" r="9" fill="#7A1A1A"/>
+              <circle cx="100" cy="82" r="7.5" fill="#A83030"/>
+              <circle cx="98" cy="80" r="2" fill="rgba(255,255,255,0.15)"/>
+              <!-- Pepperoni 4 -->
+              <circle cx="80" cy="98" r="9" fill="#7A1A1A"/>
+              <circle cx="80" cy="98" r="7.5" fill="#A83030"/>
+              <circle cx="78" cy="96" r="2" fill="rgba(255,255,255,0.15)"/>
+              <!-- Pepperoni 5 small -->
+              <circle cx="68" cy="66" r="6" fill="#7A1A1A"/>
+              <circle cx="68" cy="66" r="5" fill="#A83030"/>
+              <!-- Basil -->
+              <ellipse cx="72" cy="74" rx="7" ry="4" fill="#2D6A4F" transform="rotate(-35 72 74)"/>
+              <ellipse cx="72" cy="74" rx="5" ry="2.5" fill="#52B788" transform="rotate(-35 72 74)"/>
+              <ellipse cx="92" cy="94" rx="7" ry="4" fill="#2D6A4F" transform="rotate(25 92 94)"/>
+              <ellipse cx="92" cy="94" rx="5" ry="2.5" fill="#52B788" transform="rotate(25 92 94)"/>
+              <!-- Shine -->
+              <ellipse cx="52" cy="46" rx="14" ry="8" fill="rgba(255,255,255,0.12)" transform="rotate(-25 52 46)"/>
+            </svg>
+          </div>
+
+          <!-- Countdown overlay -->
+          <div class="countdown-overlay" id="countdown-overlay">
+            <div class="countdown-number" id="countdown-num">3</div>
+          </div>
+          <!-- Level up banner -->
+          <div class="levelup-banner" id="levelup-banner">
+            <div class="levelup-num" id="levelup-num">2</div>
+            <div class="levelup-text">Уровень</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="difficulty-bar-wrap" id="diff-bar">
+      <div class="diff-dot" id="d1"></div>
+      <div class="diff-dot" id="d2"></div>
+      <div class="diff-dot" id="d3"></div>
+      <div class="diff-dot" id="d4"></div>
+      <div class="diff-dot" id="d5"></div>
+    </div>
+
+    <div class="hint-text" id="hint-text">Держи пиццу в центре</div>
+  </div>
+
+  <!-- GAMEOVER SCREEN -->
+  <div class="screen hidden" id="screen-gameover">
+    <div class="fail-emoji" id="fail-emoji">🍕</div>
+    <div class="fail-title">Пицца упала!</div>
+    <div class="result-card">
+      <div class="result-label">Ты продержался</div>
+      <div><span class="result-value" id="result-value">0.0</span><span class="result-unit">сек</span></div>
+      <div style="font-size:12px;font-weight:700;color:rgba(255,248,231,0.45);margin-top:6px;letter-spacing:1px;">
+        Достиг <span id="result-level">уровня 1</span>
+      </div>
+      <div class="best-label" id="new-best-label">🏆 Новый рекорд!</div>
+    </div>
+    <div class="name-input-wrap" id="name-input-wrap">
+      <input class="name-input" id="name-input" type="text" maxlength="16" placeholder="Твоё имя..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="btn-save-name" id="btn-save-name">OK</button>
+    </div>
+    <button class="btn-restart" id="btn-restart">🔄 Ещё раз</button>
+    <button class="btn-share" id="btn-share">📤 Поделиться</button>
+    <button class="btn-leaderboard" id="btn-lb-from-gameover" style="margin-top:8px;">🏆 Лидерборд</button>
+  </div>
+
+  <!-- LEADERBOARD SCREEN -->
+  <div class="screen hidden" id="screen-leaderboard">
+    <div class="lb-header">
+      <div class="lb-title">🏆 Лидерборд</div>
+      <button class="btn-lb-close" id="btn-lb-close">✕</button>
+    </div>
+    <div class="lb-list" id="lb-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+const State = {
+  IDLE: 'idle',
+  COUNTDOWN: 'countdown',
+  PLAYING: 'playing',
+  GAMEOVER: 'gameover'
+};
+
+let state = State.IDLE;
+let pizzaX = 0;         // offset in px from center
+let vel = 0;            // pizza velocity px/s
+let accel = 0;          // current drift acceleration px/s²
+let accelTimer = 0;     // seconds until next accel change
+let accelDir = 1;
+let gameTimer = 0;
+let animId = null;
+let lastTime = null;
+let dragActive = false;
+let dragStartX = 0;
+let dragStartPizzaX = 0;
+let bestScore = parseFloat(localStorage.getItem('pgBest') || '0');
+
+// ── DOM ──
+const screenStart    = document.getElementById('screen-start');
+const screenGame     = document.getElementById('screen-game');
+const screenGameover = document.getElementById('screen-gameover');
+const screenLb       = document.getElementById('screen-leaderboard');
+const btnPlay        = document.getElementById('btn-play');
+const btnRestart     = document.getElementById('btn-restart');
+const btnShare       = document.getElementById('btn-share');
+const btnLbOpen      = document.getElementById('btn-lb-open');
+const btnLbFromGO    = document.getElementById('btn-lb-from-gameover');
+const btnLbClose     = document.getElementById('btn-lb-close');
+const btnSaveName    = document.getElementById('btn-save-name');
+const nameInput      = document.getElementById('name-input');
+const nameInputWrap  = document.getElementById('name-input-wrap');
+const lbList         = document.getElementById('lb-list');
+const timerValue     = document.getElementById('timer-value');
+const resultValue    = document.getElementById('result-value');
+const newBestLabel   = document.getElementById('new-best-label');
+const pizzaContainer = document.getElementById('pizza-container');
+const pizzaSvg       = document.getElementById('pizza-svg');
+const pizzaBox       = document.getElementById('pizza-box');
+const boxWrap        = document.getElementById('box-wrap');
+const countdownOverlay = document.getElementById('countdown-overlay');
+const countdownNum   = document.getElementById('countdown-num');
+const bestBadge      = document.getElementById('best-badge');
+const bestDisplay    = document.getElementById('best-display');
+const hintText       = document.getElementById('hint-text');
+const failEmoji      = document.getElementById('fail-emoji');
+const diffDots       = [document.getElementById('d1'), document.getElementById('d2'), document.getElementById('d3'), document.getElementById('d4'), document.getElementById('d5')];
+
+// ── LEADERBOARD ──
+const LB_KEY = 'pgLeaderboard';
+const LB_MAX = 10;
+let lbPrevScreen = 'screen-start'; // to know where to go back
+let pendingScore = 0;
+let scoreSaved = false;
+
+function lbLoad() {
+  try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
+  catch { return []; }
+}
+
+function lbSave(entries) {
+  localStorage.setItem(LB_KEY, JSON.stringify(entries));
+}
+
+function lbAddEntry(name, score) {
+  const entries = lbLoad();
+  entries.push({ name: name.trim() || 'Аноним', score, date: Date.now() });
+  entries.sort((a, b) => b.score - a.score);
+  const trimmed = entries.slice(0, LB_MAX);
+  lbSave(trimmed);
+  return trimmed;
+}
+
+function lbRender(highlightScore) {
+  const entries = lbLoad();
+  const medals = ['🥇', '🥈', '🥉'];
+  if (entries.length === 0) {
+    lbList.innerHTML = '<div class="lb-empty">Пока никого нет.<br>Будь первым! 🍕</div>';
+    return;
+  }
+  lbList.innerHTML = entries.map((e, i) => {
+    const isHighlight = highlightScore !== undefined && Math.abs(e.score - highlightScore) < 0.05;
+    return `<div class="lb-row${isHighlight ? ' highlight' : ''}">
+      <div class="lb-rank">${i + 1}</div>
+      <div class="lb-medal">${medals[i] || '🍕'}</div>
+      <div class="lb-name">${escHtml(e.name)}</div>
+      <div class="lb-score">${e.score.toFixed(1)}<span> сек</span></div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showLeaderboard(fromScreen, highlight) {
+  lbPrevScreen = fromScreen;
+  lbRender(highlight);
+  [screenStart, screenGame, screenGameover].forEach(s => s.classList.add('hidden'));
+  screenLb.classList.remove('hidden');
+}
+
+btnLbOpen.addEventListener('click', () => showLeaderboard('screen-start'));
+btnLbFromGO.addEventListener('click', () => showLeaderboard('screen-gameover', pendingScore));
+btnLbClose.addEventListener('click', () => {
+  screenLb.classList.add('hidden');
+  document.getElementById(lbPrevScreen).classList.remove('hidden');
+});
+
+function saveScore() {
+  if (scoreSaved) return;
+  scoreSaved = true;
+  const name = nameInput.value.trim() || 'Аноним';
+  localStorage.setItem('pgLastName', name);
+  lbAddEntry(name, pendingScore);
+  nameInputWrap.style.opacity = '0.4';
+  nameInputWrap.style.pointerEvents = 'none';
+  btnSaveName.textContent = '✓';
+}
+
+btnSaveName.addEventListener('click', saveScore);
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { nameInput.blur(); saveScore(); } });
+
+// ── BOX PARAMS ──
+let boxHalfWidth = 0;
+let pizzaRadius = 0;
+const BOUNDARY_MARGIN = 0.08; // fraction of box that counts as out
+
+function updateBoxParams() {
+  const boxEl = document.getElementById('box-interior');
+  const rect = boxEl.getBoundingClientRect();
+  boxHalfWidth = rect.width / 2;
+  const pizzaEl = pizzaContainer;
+  pizzaRadius = pizzaEl.getBoundingClientRect().width / 2;
+}
+
+// ── SHOW BEST ──
+function refreshBestBadge() {
+  if (bestScore > 0) {
+    bestBadge.classList.remove('no-score');
+    bestDisplay.textContent = bestScore.toFixed(1);
+  }
+}
+
+// ── SCREENS ──
+function showScreen(id) {
+  [screenStart, screenGame, screenGameover, screenLb].forEach(s => {
+    if (s.id === id) s.classList.remove('hidden');
+    else s.classList.add('hidden');
+  });
+}
+
+// ── DRIFT PHYSICS ──
+// Model: pizzaX has a velocity (vel), drift applies acceleration each frame.
+// Player drag directly sets pizzaX — so they fight the accumulating velocity.
+
+// ── LEVELS ──
+// 5 levels × 10 sec each, then cycle back with a speed multiplier
+const LEVEL_DURATION = 10; // seconds per level
+const LEVELS = [
+  { name: '1', baseAccel: 75,  kickAccel: 160, kickChance: 0.0,  maxVel: 150, interval: [0.9, 1.3] }, // easy
+  { name: '2', baseAccel: 130, kickAccel: 260, kickChance: 0.15, maxVel: 220, interval: [0.7, 1.0] }, // medium
+  { name: '3', baseAccel: 195, kickAccel: 380, kickChance: 0.28, maxVel: 310, interval: [0.55, 0.85] }, // hard
+  { name: '4', baseAccel: 270, kickAccel: 500, kickChance: 0.38, maxVel: 400, interval: [0.42, 0.68] }, // very hard
+  { name: '5', baseAccel: 360, kickAccel: 650, kickChance: 0.48, maxVel: 500, interval: [0.32, 0.52] }, // extreme
+];
+
+let currentLevel = 0;   // 0-based index into LEVELS
+let cycleCount = 0;     // how many full 5-level cycles done
+let levelTimer = 0;     // time spent in current level
+let lastShownLevel = -1;
+
+function getLevelParams() {
+  const p = LEVELS[currentLevel];
+  const cycleMult = 1 + cycleCount * 0.3; // each cycle 30% harder
+  return {
+    baseAccel:  p.baseAccel  * cycleMult,
+    kickAccel:  p.kickAccel  * cycleMult,
+    kickChance: Math.min(0.6, p.kickChance + cycleCount * 0.05),
+    maxVel:     p.maxVel     * cycleMult,
+    interval:   p.interval,
+  };
+}
+
+function advanceLevel() {
+  currentLevel++;
+  if (currentLevel >= LEVELS.length) {
+    currentLevel = 0;
+    cycleCount++;
+  }
+  levelTimer = 0;
+  showLevelUpBanner(currentLevel + 1);
+  updateLevelDisplay();
+}
+
+function updateLevelDisplay() {
+  const lvEl = document.getElementById('level-display');
+  const lvVal = document.getElementById('level-value');
+  lvVal.textContent = currentLevel + 1;
+  lvEl.className = 'level-display lvl' + (currentLevel + 1);
+}
+
+function showLevelUpBanner(num) {
+  const banner = document.getElementById('levelup-banner');
+  const numEl  = document.getElementById('levelup-num');
+  numEl.textContent = num;
+  banner.classList.remove('show');
+  void banner.offsetWidth;
+  banner.classList.add('show');
+}
+
+function tickLevel(dt) {
+  levelTimer += dt;
+  if (levelTimer >= LEVEL_DURATION) advanceLevel();
+}
+
+function getDifficultyParams() { return getLevelParams(); }
+function updateDifficultyDots() {} // no-op, replaced by updateLevelDisplay
+
+function pickNewAccel() {
+  const p = getDifficultyParams();
+  const isKick = Math.random() < p.kickChance;
+  const mag = isKick
+    ? p.kickAccel * (0.8 + Math.random() * 0.4)
+    : p.baseAccel * (0.7 + Math.random() * 0.6);
+
+  // Bias direction away from center
+  const centerBias = pizzaX / (boxHalfWidth || 100);
+  if (Math.random() < 0.6) {
+    accelDir = centerBias >= 0 ? 1 : -1;
+  } else {
+    accelDir = Math.random() < 0.5 ? 1 : -1;
+  }
+  accel = accelDir * mag;
+
+  const [lo, hi] = p.interval;
+  accelTimer = lo + Math.random() * (hi - lo);
+}
+
+// ── GAME LOOP ──
+function gameLoop(ts) {
+  if (state !== State.PLAYING) return;
+  if (!lastTime) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+
+  gameTimer += dt;
+  timerValue.textContent = gameTimer.toFixed(1);
+  tickLevel(dt);
+
+  // Tick accel timer
+  accelTimer -= dt;
+  if (accelTimer <= 0) pickNewAccel();
+
+  const p = getDifficultyParams();
+
+  // Physics runs IDENTICALLY — finger has zero effect on velocity or position drift
+  vel += accel * dt;
+  vel = Math.max(-p.maxVel, Math.min(p.maxVel, vel));
+  pizzaX += vel * dt;
+
+  // When dragging: also apply finger offset on top of physics
+  if (dragActive) {
+    const fingerDx = dragTargetX - prevDragTargetX;
+    pizzaX += fingerDx;
+  }
+  prevDragTargetX = dragActive ? dragTargetX : pizzaX;
+
+  // Tilt based on velocity
+  const tiltAngle = Math.max(-28, Math.min(28, vel * 0.055));
+  pizzaContainer.style.transform = `translate(calc(-50% + ${pizzaX}px), -50%) rotate(${tiltAngle}deg)`;
+
+  // Box wobble on high velocity
+  const absVel = Math.abs(vel);
+  if (absVel > 180) {
+    const boxTilt = (vel > 0 ? 1 : -1) * Math.min(2.5, absVel * 0.008);
+    pizzaBox.style.transform = `rotate(${boxTilt}deg)`;
+  } else {
+    pizzaBox.style.transform = '';
+  }
+
+  // Boundary check
+  const limit = boxHalfWidth * (1 - BOUNDARY_MARGIN) - pizzaRadius * 0.5;
+  if (Math.abs(pizzaX) > limit) {
+    triggerGameOver();
+    return;
+  }
+
+  animId = requestAnimationFrame(gameLoop);
+}
+
+// ── TRIGGER GAME OVER ──
+function triggerGameOver() {
+  state = State.GAMEOVER;
+  cancelAnimationFrame(animId);
+
+  const flyDir = pizzaX > 0 ? 1 : -1;
+  pizzaContainer.style.setProperty('--fly-x', `${flyDir * 120}px`);
+  pizzaContainer.style.setProperty('--fly-rot', `${flyDir * 35}deg`);
+  pizzaContainer.classList.add('pizza-fly');
+  pizzaBox.classList.add('box-shake');
+
+  // Particles
+  spawnParticles();
+
+  setTimeout(() => {
+    const score = parseFloat(gameTimer.toFixed(1));
+    pendingScore = score;
+    scoreSaved = false;
+    resultValue.textContent = score.toFixed(1);
+    // Show reached level
+    const lvlReached = currentLevel + 1 + (cycleCount * 5);
+    document.getElementById('result-level').textContent =
+      cycleCount > 0 ? `уровня ${lvlReached} (круг ${cycleCount + 1})` : `уровня ${lvlReached}`;
+
+    // Reset name input
+    nameInput.value = localStorage.getItem('pgLastName') || '';
+    nameInputWrap.style.opacity = '';
+    nameInputWrap.style.pointerEvents = '';
+    btnSaveName.textContent = 'OK';
+
+    const isNewBest = score > bestScore;
+    if (isNewBest) {
+      bestScore = score;
+      localStorage.setItem('pgBest', bestScore.toString());
+      newBestLabel.classList.add('show');
+      failEmoji.textContent = '🏆';
+    } else {
+      newBestLabel.classList.remove('show');
+      failEmoji.textContent = ['😅', '😬', '🫠', '😂'][Math.floor(Math.random() * 4)];
+    }
+
+    refreshBestBadge();
+    showScreen('screen-gameover');
+  }, 600);
+}
+
+// ── PARTICLES ──
+function spawnParticles() {
+  const pizzaRect = pizzaContainer.getBoundingClientRect();
+  const cx = pizzaRect.left + pizzaRect.width / 2;
+  const cy = pizzaRect.top + pizzaRect.height / 2;
+  const colors = ['#FFCF6B', '#A83220', '#C47830', '#52B788', '#FF7043'];
+
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 6 + Math.random() * 10;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 100;
+    p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+    p.style.setProperty('--ty', `${Math.sin(angle) * dist - 40}px`);
+    p.style.setProperty('--dur', `${0.5 + Math.random() * 0.5}s`);
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+}
+
+// ── COUNTDOWN ──
+async function runCountdown() {
+  state = State.COUNTDOWN;
+  countdownOverlay.style.display = 'flex';
+
+  for (let n = 3; n >= 1; n--) {
+    countdownNum.className = 'countdown-number';
+    countdownNum.textContent = n;
+    // Force reflow to restart animation
+    void countdownNum.offsetWidth;
+    countdownNum.className = 'countdown-number';
+    await sleep(900);
+  }
+  countdownNum.className = 'countdown-go';
+  countdownNum.textContent = 'GO!';
+  await sleep(500);
+  countdownOverlay.style.display = 'none';
+  startGame();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── START / RESET ──
+function initGameState() {
+  pizzaX = 0;
+  vel = 0;
+  accel = 0;
+  accelTimer = 0;
+  accelDir = 1;
+  dragTargetX = 0;
+  prevDragTargetX = 0;
+  currentLevel = 0;
+  cycleCount = 0;
+  levelTimer = 0;
+  lastShownLevel = -1;
+  gameTimer = 0;
+  lastTime = null;
+  dragActive = false;
+  timerValue.textContent = '0.0';
+  updateLevelDisplay();
+  pizzaContainer.classList.remove('pizza-fly');
+  pizzaBox.classList.remove('box-shake');
+  pizzaContainer.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+  pizzaBox.style.transform = '';
+  diffDots.forEach(d => d.classList.remove('active', 'max'));
+}
+
+function startGame() {
+  state = State.PLAYING;
+  lastTime = null;
+  accelDir = Math.random() < 0.5 ? 1 : -1;
+  const p = getDifficultyParams();
+  accel = accelDir * p.baseAccel * 0.8;
+  accelTimer = p.interval[0] + Math.random() * (p.interval[1] - p.interval[0]);
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function onPlayClick() {
+  updateBoxParams();
+  initGameState();
+  showScreen('screen-game');
+  hintText.style.animation = 'none';
+  void hintText.offsetWidth;
+  hintText.style.animation = 'hintFade 3s forwards';
+  runCountdown();
+}
+
+function onRestartClick() {
+  updateBoxParams();
+  initGameState();
+  showScreen('screen-game');
+  hintText.style.animation = 'none';
+  void hintText.offsetWidth;
+  hintText.style.animation = 'hintFade 3s forwards';
+  runCountdown();
+}
+
+// ── TOUCH / MOUSE DRAG ──
+function getTouchX(e) {
+  if (e.touches && e.touches.length > 0) return e.touches[0].clientX;
+  if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
+  return e.clientX;
+}
+
+let dragTargetX = 0;   // where the finger currently is (in pizza-space)
+let prevDragTargetX = 0;
+
+function onDragStart(e) {
+  if (state !== State.PLAYING) return;
+  e.preventDefault();
+  dragActive = true;
+  dragStartX = getTouchX(e);
+  dragStartPizzaX = pizzaX;
+  dragTargetX = pizzaX;
+  // Do NOT touch vel — physics keeps running at full speed
+}
+
+function onDragMove(e) {
+  if (!dragActive || state !== State.PLAYING) return;
+  e.preventDefault();
+  const dx = getTouchX(e) - dragStartX;
+  dragTargetX = dragStartPizzaX + dx;
+}
+
+function onDragEnd(e) {
+  if (!dragActive) return;
+  dragActive = false;
+  // Transfer swipe momentum
+  const dx = getTouchX(e) - dragStartX;
+  vel = Math.max(-150, Math.min(150, vel + dx * 1.5));
+}
+
+// Attach to pizza container (direct manipulation)
+pizzaContainer.addEventListener('touchstart', onDragStart, { passive: false });
+document.addEventListener('touchmove', onDragMove, { passive: false });
+document.addEventListener('touchend', onDragEnd, { passive: false });
+
+// Mouse support for desktop testing
+pizzaContainer.addEventListener('mousedown', onDragStart);
+document.addEventListener('mousemove', onDragMove);
+document.addEventListener('mouseup', onDragEnd);
+
+// ── BUTTON EVENTS ──
+btnPlay.addEventListener('click', onPlayClick);
+btnRestart.addEventListener('click', onRestartClick);
+btnShare.addEventListener('click', () => {
+  const score = parseFloat(gameTimer.toFixed(1)) || parseFloat(resultValue.textContent);
+  const text = `🍕 Pizza Gravity — я продержался ${score} сек! Сможешь побить?`;
+  if (navigator.share) {
+    navigator.share({ title: 'Pizza Gravity', text });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      btnShare.textContent = '✅ Скопировано!';
+      setTimeout(() => { btnShare.textContent = '📤 Поделиться'; }, 2000);
+    }).catch(() => {});
+  }
+});
+
+// Prevent page scroll during game
+document.addEventListener('touchmove', e => {
+  if (state === State.PLAYING || state === State.COUNTDOWN) e.preventDefault();
+}, { passive: false });
+
+// ── INIT ──
+refreshBestBadge();
+showScreen('screen-start');
+</script>
+</body>
+</html>
